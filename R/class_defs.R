@@ -56,30 +56,78 @@ setClass(
   }
 )
 
-## 
-## Class initializers
-##
-
-# setMethod(
-#   f='initialize', 
-#   signature='Spectra', 
-#   definition=function(.Object, wl=0, spec=list(new(".Spectra"))){
-#     .Object@wl <- wl
-#     .Object@spec <- spec
-#     # call inspector to check for horizon level errors
-#     validObject(.Object)
-#     return(.Object)
-#   }
-# )
-
 ## basic printing methods for class Spectra
+
+## Returns spectral resolution of the wavelengths
+
+setGeneric("getSpectralResolution", function(object, ...){
+  standardGeneric("getSpectralResolution")
+}
+)
+
+getSpectralResolution.numeric <- function(object, ...){
+  res <- unique(object[2:length(object)] - object[1:length(object)-1])
+  if (length(res) > 1) res <- "irregular wavelength spacing"
+  res
+}
+
+getSpectralResolution.Spectra <- function(object, ...){
+  x <- object@wl
+  res <- unique(x[2:length(x)] - x[1:length(x)-1])
+  if (length(res) > 1) res <- "irregular wavelength spacing"
+  res
+}
+
+setMethod("getSpectralResolution", "numeric", getSpectralResolution.numeric)
+setMethod("getSpectralResolution", "integer", getSpectralResolution.numeric)
+setMethod("getSpectralResolution", "Spectra", getSpectralResolution.Spectra)
+setMethod("getSpectralResolution", "SpectraDataFrame", getSpectralResolution.Spectra)
+
+## summary of the Spectra* objects
+
+setGeneric("summary", function(object, ...){
+  standardGeneric("summary")
+}
+)
+
+summary.Spectra <- function (object, ...){
+    obj = list()
+    obj[["class"]] = class(object)
+    obj[["wl"]] = object@wl
+    obj[["id"]] = object@id
+    obj[["nir"]] = object@nir
+    if ("data" %in% slotNames(object)) 
+        if (ncol(object@data) > 1) 
+            obj[["data"]] = summary(object@data)
+        else obj[["data"]] = summary(object@data[[1]])
+    class(obj) = "summary.Spectra"
+    obj
+}
+
+setMethod("summary", "summary.Spectra", summary.Spectra)
+
+print.summary.Spectra = function(x, ...) {
+    cat(paste("Object of class ", x[["class"]], "\n", sep = ""))
+    cat("Wavelength range: ")
+    cat(min(x[["wl"]], na.rm=TRUE), " to ", max(x[["wl"]], na.rm=TRUE)," nm \n", sep="")
+    cat("Spectral resolution: ", getSpectralResolution(x[["wl"]]), " nm\n", sep="")
+    cat(paste("Number of samples:", length(x[["id"]]), "\n"))
+    if (!is.null(x$data)) {
+        cat("Data attributes:\n")
+        print(x$data)
+    }
+    invisible(x)
+}
+
 setMethod(
   f='show', 
   signature='Spectra',
   definition=function(object){
-    cat("Collection of ", length(object@id),"spectra\n", sep='')
-    cat("Wavelength range: ", min(object@wl),"-",max(object@wl),'\n', sep="")
-#     cat("Properties available: ", unique(unlist(strsplit(sapply(object@spec, function(x){names(x@data)}),''))),'\n', sep="")
+    cat("Collection of ", length(object@id)," spectra\n", sep='')
+    cat("Wavelength range: ", min(object@wl, na.rm=TRUE),"-",max(object@wl, na.rm=TRUE),' nm \n', sep="")
+    cat("Spectral resolution: ", getSpectralResolution(object), " nm\n", sep="")
+    print((object@data))
+    cat("\n")
   }
 )
 
