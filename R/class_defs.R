@@ -16,10 +16,18 @@ setClass(
     id=as.character(NA)
   ),
   validity = function(object) {
-    if (!inherits(object@wl, "numeric"))
-      stop("wl should be of class numeric")
-    if (nrow(object@nir) != length(object@id))
-      stop("number of individuals and number of rows in the spectra matrix don't match")
+    if (!inherits(object@wl, "numeric") & !inherits(object@wl, "integer"))
+      stop("wl should be of class integer or numeric")
+    if (is.character(getSpectralResolution(object@wl)))
+      warning(getSpectralResolution(object@wl))
+    # If no id is given, id is using the N first integers
+    if (is.na(object@id)) {
+      object@id <- as.character(seq(1, nrow(object@nir)))
+    } else {
+      # Test of inconsistent ids when id is specified by the user
+      if (nrow(object@nir) != length(object@id))
+	stop("number of individuals and number of rows in the spectra matrix don't match")
+    }
     if (ncol(object@nir) != length(object@wl))
       stop("number of columns in the spectra matrix and number of observed wavelengths don't match")
     return(TRUE)
@@ -40,18 +48,24 @@ setClass(
     data=data.frame()
   ),
   validity = function(object) {
-    if (!inherits(object@wl, "numeric"))
-      stop("wl should be of class numeric")
-    if (!inherits(object@data, "data.frame"))
-      stop("data should be of class data.frame")
-    if (nrow(object@nir) != length(object@id))
-      stop("number of individuals and number of rows in the spectra matrix don't match")
-    if (ncol(object@nir) != length(object@wl))
-      stop("number of columns in the spectra matrix and number of observed wavelengths don't match")
+#     if (!inherits(object@wl, "numeric") & !inherits(object@wl, "integer"))
+#       stop("wl should be of class integer or numeric")
+#     if (is.character(getSpectralResolution(object@wl)))
+#       warning(getSpectralResolution(object@wl))
+#     # If no id is given, id is using the N first integers
+#     if (is.na(object@id)) {
+#       object@id <- as.character(seq(1, nrow(object@nir)))
+#     } else {
+#       # Test of inconsistent ids when id is specified by the user
+#       if (nrow(object@nir) != length(object@id))
+# 	stop("number of individuals and number of rows in the spectra matrix don't match")
+#     }
+#     if (ncol(object@nir) != length(object@wl))
+#       stop("number of columns in the spectra matrix and number of observed wavelengths don't match")
     if (ncol(object@data) == 0)
       stop("data.frame is empty: use Spectra() to create spectra-only object")
-    if (nrow(object@data) != length(object@id))
-      stop("number of rows in data.frame and Spectra don't match")
+    if (nrow(object@data) != nrow(object@nir))
+      stop("number of rows in data.frame and spectra don't match")
     return(TRUE)
   }
 )
@@ -96,10 +110,12 @@ summary.Spectra <- function (object, ...){
     obj[["wl"]] = object@wl
     obj[["id"]] = object@id
     obj[["nir"]] = object@nir
-    if ("data" %in% slotNames(object)) 
+    if ("data" %in% slotNames(object)) {
         if (ncol(object@data) > 1) 
             obj[["data"]] = summary(object@data)
         else obj[["data"]] = summary(object@data[[1]])
+    }
+    else obj[["data"]] = NULL
     class(obj) = "summary.Spectra"
     obj
 }
@@ -119,6 +135,8 @@ print.summary.Spectra = function(x, ...) {
     invisible(x)
 }
 
+## Print methods
+
 setMethod(
   f='show', 
   signature='Spectra',
@@ -126,8 +144,18 @@ setMethod(
     cat("Collection of ", length(object@id)," spectra\n", sep='')
     cat("Wavelength range: ", min(object@wl, na.rm=TRUE),"-",max(object@wl, na.rm=TRUE),' nm \n', sep="")
     cat("Spectral resolution: ", getSpectralResolution(object), " nm\n", sep="")
+  }
+)
+
+setMethod(
+  f='show', 
+  signature='SpectraDataFrame',
+  definition=function(object){
+    cat("Collection of ", length(object@id)," spectra\n", sep='')
+    cat("Wavelength range: ", min(object@wl, na.rm=TRUE),"-",max(object@wl, na.rm=TRUE),' nm \n', sep="")
+    cat("Spectral resolution: ", getSpectralResolution(object), " nm\n", sep="")
+    cat("Data attributes:\n")
     print((object@data))
-    cat("\n")
   }
 )
 
