@@ -22,17 +22,9 @@ setClass(
       object@wl <- as.numeric(object@wl)
     if (!inherits(object@wl, "numeric"))
       stop("wl should be of class integer or numeric")
-    if (is.character(getSpectralResolution(object@wl)))
-      warning(getSpectralResolution(object@wl))
-    # If no id is given, id is using the N first integers
-    if (is.na(object@id)) {
-      object@id <- as.character(seq(1, nrow(object@nir)))
-    } else {
-      # Test of inconsistent ids when id is specified by the user
-      if (nrow(object@nir) != length(object@id))
-	stop("number of individuals and number of rows in the spectra matrix don't match")
-    }
-    if (ncol(object@nir) != length(object@wl))
+    if ((length(object@id) > 0) & (nrow(object@nir) != length(object@id)))
+      stop("number of individuals and number of rows in the spectra matrix don't match")
+    if ((length(object@wl > 1) & (ncol(object@nir) != length(object@wl))))
       stop("number of columns in the spectra matrix and number of observed wavelengths don't match")
     return(TRUE)
   }
@@ -52,20 +44,6 @@ setClass(
     data=data.frame()
   ),
   validity = function(object) {
-#     if (!inherits(object@wl, "numeric") & !inherits(object@wl, "integer"))
-#       stop("wl should be of class integer or numeric")
-#     if (is.character(getSpectralResolution(object@wl)))
-#       warning(getSpectralResolution(object@wl))
-#     # If no id is given, id is using the N first integers
-#     if (is.na(object@id)) {
-#       object@id <- as.character(seq(1, nrow(object@nir)))
-#     } else {
-#       # Test of inconsistent ids when id is specified by the user
-#       if (nrow(object@nir) != length(object@id))
-# 	stop("number of individuals and number of rows in the spectra matrix don't match")
-#     }
-#     if (ncol(object@nir) != length(object@wl))
-#       stop("number of columns in the spectra matrix and number of observed wavelengths don't match")
     if (ncol(object@data) == 0)
       stop("data.frame is empty: use Spectra() to create spectra-only object")
     if (nrow(object@data) != nrow(object@nir))
@@ -74,13 +52,74 @@ setClass(
   }
 )
 
+## 
+## METHODS
+##
+
+## Initializers
+##
+
+"Spectra" <- function(wl=numeric(), nir=matrix(), id=as.character(NA)) {
+  # if the wl are given as an integer vector they are translated into a numeric vector
+  # for clarity (only one type to manage)
+  if (inherits(wl, "integer"))
+    wl <- as.numeric(wl)
+  # If no id is given
+  if (is.na(id)) {
+    # If the object is void
+    if (is.na(nir))
+      id <- as.character(NULL)
+    # if a matrix is here
+    else
+      id <- as.character(seq(1, nrow(nir)))
+  } else {
+    # Test of inconsistent ids when id is specified by the user
+    if (nrow(nir) != length(id))
+      stop("number of individuals and number of rows in the spectra matrix don't match")
+  }
+  if ((length(wl) > 1) & (ncol(nir) != length(wl)))
+    stop("number of columns in the spectra matrix and number of observed wavelengths don't match")
+  new("Spectra", wl=wl, nir=nir, id=id)
+}
+
+"SpectraDataFrame" <- function(wl=numeric(), nir=matrix(), id=as.character(NA), data=data.frame()) {
+  # Initialization from an existing Spectra object
+  if (is(wl, 'Spectra')){
+    wl <- wl@wl
+    nir <- wl@nir
+    id <- wl@id
+  }
+  else {
+    # if the wl are given as an integer vector they are translated into a numeric vector
+    # for clarity (only one type to manage)
+    if (inherits(wl, "integer"))
+      wl <- as.numeric(wl)
+    # If no id is given
+    if (is.na(id)) {
+      # If the object is void
+      if (is.na(nir))
+	id <- as.character(NULL)
+      # if a matrix is here
+      else
+	id <- as.character(seq(1, nrow(nir)))
+    } else {
+      # Test of inconsistent ids when id is specified by the user
+      if (nrow(nir) != length(id))
+	stop("number of individuals and number of rows in the spectra matrix don't match")
+    }
+    if ((length(wl) > 1) & (ncol(nir) != length(wl)))
+      stop("number of columns in the spectra matrix and number of observed wavelengths don't match")
+  }
+  new("SpectraDataFrame", wl=wl, nir=nir, id=id, data=data)
+}
+
 ## basic printing methods for class Spectra
 
 ## Returns spectral resolution of the wavelengths
 
 setGeneric("getSpectralResolution", function(object, ...){
   standardGeneric("getSpectralResolution")
-}
+  }
 )
 
 # In getSpectralResolution, had to put a round - otherwise diff() picks some unsignificant values
@@ -103,7 +142,7 @@ setMethod("getSpectralResolution", "SpectraDataFrame", getSpectralResolution.Spe
 
 setGeneric("summary", function(object, ...){
   standardGeneric("summary")
-}
+  }
 )
 
 summary.Spectra <- function (object, ...){
@@ -126,21 +165,28 @@ setMethod("summary", "summary.Spectra", summary.Spectra)
 
 print.summary.Spectra = function(x, ...) {
     cat(paste("Object of class ", x[["class"]], "\n", sep = ""))
-    cat("Wavelength range: ")
-    cat(min(x[["wl"]], na.rm=TRUE), " to ", max(x[["wl"]], na.rm=TRUE)," nm \n", sep="")
-    SpectralResolution <- getSpectralResolution(x[["wl"]])
-    if (length(SpectralResolution) > 1) {
-      cat("Spectral resolution: irregular wavelength spacing\n")
-    } else {
-      cat("Spectral resolution: ", SpectralResolution , " nm\n", sep="")
-    }
-    cat(paste("Number of samples:", length(x[["id"]]), "\n"))
-    if (!is.null(x$data)) {
-        cat("Data attributes:\n")
-        print(x$data)
+    cat("Set of ", length(x[['id']])," spectra\n", sep = "")
+    if (length(x[['id']]) > 0){
+      cat("Wavelength range: ")
+      cat(min(x[["wl"]], na.rm=TRUE), " to ", max(x[["wl"]], na.rm=TRUE)," nm \n", sep="")
+      SpectralResolution <- getSpectralResolution(x[["wl"]])
+      if (length(SpectralResolution) > 1) 
+	cat("Spectral resolution: irregular wavelength spacing\n")
+      else {
+	if (length(SpectralResolution) == 0)
+	  cat("Spectral resolution: NA\n")
+	else 
+	  cat("Spectral resolution: ", SpectralResolution , " nm\n", sep="")
+      }
+      if (!is.null(x$data)) {
+	  cat("Data attributes:\n")
+	  print(x$data)
+      }
     }
     invisible(x)
 }
+
+setMethod("print", "summary.Spectra", print.summary.Spectra)
 
 ## Print methods
 
@@ -148,13 +194,19 @@ setMethod(
   f='show', 
   signature='Spectra',
   definition=function(object){
-    cat("Collection of ", length(object@id)," spectra\n", sep='')
-    cat("Wavelength range: ", min(object@wl, na.rm=TRUE),"-",max(object@wl, na.rm=TRUE),' nm \n', sep="")
-    SpectralResolution <- getSpectralResolution(object)
-    if (length(SpectralResolution) > 1) {
-      cat("Spectral resolution: irregular wavelength spacing\n")
-    } else {
-      cat("Spectral resolution: ", SpectralResolution , " nm\n", sep="")
+    cat(paste("Object of class ", class(object), "\n", sep = ""))
+    cat("Set of ", length(object@id)," spectra\n", sep='')
+    if (length(object@id) > 0){
+      cat("Wavelength range: ", min(object@wl, na.rm=TRUE),"-",max(object@wl, na.rm=TRUE),' nm \n', sep="")
+      SpectralResolution <- getSpectralResolution(object)
+      if (length(SpectralResolution) > 1) 
+	cat("Spectral resolution: irregular wavelength spacing\n")
+      else {
+	if (length(SpectralResolution) == 0)
+	  cat("Spectral resolution: NA\n")
+	else 
+	  cat("Spectral resolution: ", SpectralResolution , " nm\n", sep="")
+      }
     }
   }
 )
@@ -163,13 +215,19 @@ setMethod(
   f='show', 
   signature='SpectraDataFrame',
   definition=function(object){
-    cat("Collection of ", length(object@id)," spectra\n", sep='')
-    cat("Wavelength range: ", min(object@wl, na.rm=TRUE),"-",max(object@wl, na.rm=TRUE),' nm \n', sep="")
-    SpectralResolution <- getSpectralResolution(object)
-    if (length(SpectralResolution) > 1) {
-      cat("Spectral resolution: irregular wavelength spacing\n")
-    } else {
-      cat("Spectral resolution: ", SpectralResolution , " nm\n", sep="")
+    cat(paste("Object of class ", class(object), "\n", sep = ""))
+    cat("Set of ", length(object@id)," spectra\n", sep='')
+    if (length(object@id) > 0){
+      cat("Wavelength range: ", min(object@wl, na.rm=TRUE),"-",max(object@wl, na.rm=TRUE),' nm \n', sep="")
+      SpectralResolution <- getSpectralResolution(object)
+      if (length(SpectralResolution) > 1) 
+	cat("Spectral resolution: irregular wavelength spacing\n")
+      else {
+	if (length(SpectralResolution) == 0)
+	  cat("Spectral resolution: NA\n")
+	else 
+	  cat("Spectral resolution: ", SpectralResolution , " nm\n", sep="")
+      }
     }
     cat("Data attributes:\n")
     print((object@data))
@@ -179,24 +237,17 @@ setMethod(
 ##
 ## Setters
 ##
-setGeneric(
-  'spectra',
-  package='specstore', 
-  def=function(object, value){
-    standardGeneric('spectra')
-  }
-)
-
-# init like this: spectra(foo) <- id ~ wl + ref
-setMethod(
-  f='spectra',
-  signature='data.frame',
-  definition=function(object, value){}
-#   definition=function(object, value){
-#     if (inherits(value, "formula")){
-#       mf <- model.frame(value, object)
-#     }
-#     else 
-#       stop('Please use the ~wavelength+reflectance initializer.')
+# setGeneric(
+#   'Spectra',
+#   package='specstore', 
+#   def=function(object, value){
+#     standardGeneric('Spectra')
 #   }
-)
+# )
+# 
+# setMethod(
+#   f='Spectra',
+#   signature='data.frame',
+#   definition=function(object, value){
+#   }
+# )
