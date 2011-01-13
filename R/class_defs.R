@@ -108,10 +108,10 @@ setClass(
     # If no id is given
     if (all(is.na(id))) {
       # If the object is void
-      if (all(is.na(nir)))
+      if (length(nir) == 1) 
 	id <- as.character(NULL)
       # if a matrix is here
-      else
+      else 
 	id <- as.character(seq(1, nrow(nir)))
     } else {
       # Test of inconsistent ids when id is specified by the user
