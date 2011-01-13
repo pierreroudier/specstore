@@ -275,3 +275,15 @@ get_spectra.Spectra<- function(object){
 
 setMethod("get_spectra", "Spectra", get_spectra.Spectra)
 setMethod("get_spectra", "SpectraDataFrame", get_spectra.Spectra)
+
+setGeneric("wl", function(object, ...){
+  standardGeneric("wl")
+  }
+)
+
+wl.Spectra<- function(object){
+    object@wl
+}
+
+setMethod("wl", "Spectra", wl.Spectra)
+setMethod("wl", "SpectraDataFrame", wl.Spectra)
