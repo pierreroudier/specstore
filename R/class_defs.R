@@ -95,9 +95,9 @@ setClass(
     if (inherits(wl, "integer"))
       wl <- as.numeric(wl)
     # If no id is given
-    if (is.na(id)) {
+    if (all(is.na(id))) {
       # If the object is void
-      if (is.na(nir))
+      if (all(is.na(nir)))
 	id <- as.character(NULL)
       # if a matrix is here
       else
@@ -110,6 +110,10 @@ setClass(
     if ((length(wl) > 1) & (ncol(nir) != length(wl)))
       stop("number of columns in the spectra matrix and number of observed wavelengths don't match")
   }
+  if (inherits(data, "numeric"))
+      data <- as.data.frame(data)
+  if (inherits(data, "integer"))
+      data <- as.data.frame(data)
   new("SpectraDataFrame", wl=wl, nir=nir, id=id, data=data)
 }
 
