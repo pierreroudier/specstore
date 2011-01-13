@@ -16,7 +16,11 @@ setClass(
     id=as.character(NA)
   ),
   validity = function(object) {
-    if (!inherits(object@wl, "numeric") & !inherits(object@wl, "integer"))
+    # if the wl are given as an integer vector they are translated into a numeric vector
+    # for clarity (only one type to manage)
+    if (inherits(object@wl, "integer"))
+      object@wl <- as.numeric(object@wl)
+    if (!inherits(object@wl, "numeric"))
       stop("wl should be of class integer or numeric")
     if (is.character(getSpectralResolution(object@wl)))
       warning(getSpectralResolution(object@wl))
@@ -79,17 +83,15 @@ setGeneric("getSpectralResolution", function(object, ...){
 }
 )
 
-getSpectralResolution.numeric <- function(object, ...){
-  res <- unique(object[2:length(object)] - object[1:length(object)-1])
-  if (length(res) > 1) res <- "irregular wavelength spacing"
-  res
+# In getSpectralResolution, had to put a round - otherwise diff() picks some unsignificant values
+getSpectralResolution.numeric <- function(object, digits=10, ...){
+  unique(round(diff(object), digits=digits))
 }
 
-getSpectralResolution.Spectra <- function(object, ...){
+getSpectralResolution.Spectra <- function(object, digits=10, ...){
   x <- object@wl
-  res <- unique(x[2:length(x)] - x[1:length(x)-1])
-  if (length(res) > 1) res <- "irregular wavelength spacing"
-  res
+  unique( round( diff(x), digits=digits) )
+#   if (length(res) > 1) res <- "irregular wavelength spacing"
 }
 
 setMethod("getSpectralResolution", "numeric", getSpectralResolution.numeric)
@@ -126,7 +128,12 @@ print.summary.Spectra = function(x, ...) {
     cat(paste("Object of class ", x[["class"]], "\n", sep = ""))
     cat("Wavelength range: ")
     cat(min(x[["wl"]], na.rm=TRUE), " to ", max(x[["wl"]], na.rm=TRUE)," nm \n", sep="")
-    cat("Spectral resolution: ", getSpectralResolution(x[["wl"]]), " nm\n", sep="")
+    SpectralResolution <- getSpectralResolution(x[["wl"]])
+    if (length(SpectralResolution) > 1) {
+      cat("Spectral resolution: irregular wavelength spacing\n")
+    } else {
+      cat("Spectral resolution: ", SpectralResolution , " nm\n", sep="")
+    }
     cat(paste("Number of samples:", length(x[["id"]]), "\n"))
     if (!is.null(x$data)) {
         cat("Data attributes:\n")
@@ -143,7 +150,12 @@ setMethod(
   definition=function(object){
     cat("Collection of ", length(object@id)," spectra\n", sep='')
     cat("Wavelength range: ", min(object@wl, na.rm=TRUE),"-",max(object@wl, na.rm=TRUE),' nm \n', sep="")
-    cat("Spectral resolution: ", getSpectralResolution(object), " nm\n", sep="")
+    SpectralResolution <- getSpectralResolution(object)
+    if (length(SpectralResolution) > 1) {
+      cat("Spectral resolution: irregular wavelength spacing\n")
+    } else {
+      cat("Spectral resolution: ", SpectralResolution , " nm\n", sep="")
+    }
   }
 )
 
@@ -153,7 +165,12 @@ setMethod(
   definition=function(object){
     cat("Collection of ", length(object@id)," spectra\n", sep='')
     cat("Wavelength range: ", min(object@wl, na.rm=TRUE),"-",max(object@wl, na.rm=TRUE),' nm \n', sep="")
-    cat("Spectral resolution: ", getSpectralResolution(object), " nm\n", sep="")
+    SpectralResolution <- getSpectralResolution(object)
+    if (length(SpectralResolution) > 1) {
+      cat("Spectral resolution: irregular wavelength spacing\n")
+    } else {
+      cat("Spectral resolution: ", SpectralResolution , " nm\n", sep="")
+    }
     cat("Data attributes:\n")
     print((object@data))
   }
