@@ -1,0 +1,11 @@
+Package: specstore
+Type: Package
+Title: Stores and eases the manipulation of spectra and associated data
+Version: 0.1
+Author: Pierre Roudier <pierre.roudier@gmail.com>
+Maintainer: Pierre Roudier <pierre.roudier@gmail.com>
+Description: Stores and eases the manipulation of spectra and associated data.
+URL: http://github.com/pierreroudier/specstore
+Depends: R (>= 2.12)
+License: GPL
+LazyData: true
