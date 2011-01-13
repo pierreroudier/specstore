@@ -18,7 +18,7 @@ setClass(
   validity = function(object) {
     # if the wl are given as an integer vector they are translated into a numeric vector
     # for clarity (only one type to manage)
-    if (inherits(object@wl, "integer"))
+    if (is(object@wl, "integer"))
       object@wl <- as.numeric(object@wl)
     if (!inherits(object@wl, "numeric"))
       stop("wl should be of class integer or numeric")
@@ -26,6 +26,8 @@ setClass(
       stop("number of individuals and number of rows in the spectra matrix don't match")
     if ((length(object@wl > 1) & (ncol(object@nir) != length(object@wl))))
       stop("number of columns in the spectra matrix and number of observed wavelengths don't match")
+    if (length(unique(object@id)) != length(object@id))
+      stop("The ids of the samples need to be unique")
     return(TRUE)
   }
 )
@@ -62,8 +64,12 @@ setClass(
 "Spectra" <- function(wl=numeric(), nir=matrix(), id=as.character(NA)) {
   # if the wl are given as an integer vector they are translated into a numeric vector
   # for clarity (only one type to manage)
-  if (inherits(wl, "integer"))
+  if (is(wl, "integer"))
     wl <- as.numeric(wl)
+  if (is(nir, 'data.frame'))
+    nir <- as.matrix(nir)
+  if (!is(id, "character"))
+    id <- as.character(id)
   # If no id is given
   if (is.na(id)) {
     # If the object is void
@@ -79,6 +85,7 @@ setClass(
   }
   if ((length(wl) > 1) & (ncol(nir) != length(wl)))
     stop("number of columns in the spectra matrix and number of observed wavelengths don't match")
+  row.names(nir) <- id
   new("Spectra", wl=wl, nir=nir, id=id)
 }
 
@@ -92,8 +99,12 @@ setClass(
   else {
     # if the wl are given as an integer vector they are translated into a numeric vector
     # for clarity (only one type to manage)
-    if (inherits(wl, "integer"))
+    if (is(wl, "integer"))
       wl <- as.numeric(wl)
+    if (is(nir, 'data.frame'))
+      nir <- as.matrix(nir)
+    if (!is(id, "character"))
+      id <- as.character(id)
     # If no id is given
     if (all(is.na(id))) {
       # If the object is void
@@ -110,10 +121,10 @@ setClass(
     if ((length(wl) > 1) & (ncol(nir) != length(wl)))
       stop("number of columns in the spectra matrix and number of observed wavelengths don't match")
   }
-  if (inherits(data, "numeric"))
+  if (is(data, "numeric") | is(data, "integer"))
       data <- as.data.frame(data)
-  if (inherits(data, "integer"))
-      data <- as.data.frame(data)
+  row.names(nir) <- id
+  row.names(data) <- id
   new("SpectraDataFrame", wl=wl, nir=nir, id=id, data=data)
 }
 
@@ -237,21 +248,3 @@ setMethod(
     print((object@data))
   }
 )
-
-##
-## Setters
-##
-# setGeneric(
-#   'Spectra',
-#   package='specstore', 
-#   def=function(object, value){
-#     standardGeneric('Spectra')
-#   }
-# )
-# 
-# setMethod(
-#   f='Spectra',
-#   signature='data.frame',
-#   definition=function(object, value){
-#   }
-# )
