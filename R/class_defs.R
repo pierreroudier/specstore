@@ -248,3 +248,28 @@ setMethod(
     print((object@data))
   }
 )
+
+## Accessors
+
+setGeneric("get_data", function(object, ...){
+  standardGeneric("get_data")
+  }
+)
+
+get_data.SpectraDataFrame <- function(object){
+    object@data
+}
+
+setMethod("get_data", "SpectraDataFrame", get_data.SpectraDataFrame)
+
+setGeneric("get_spectra", function(object, ...){
+  standardGeneric("get_spectra")
+  }
+)
+
+get_spectra.Spectra<- function(object){
+    object@nir
+}
+
+setMethod("get_spectra", "Spectra", get_spectra.Spectra)
+setMethod("get_spectra", "SpectraDataFrame", get_spectra.Spectra)
