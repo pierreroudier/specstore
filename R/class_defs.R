@@ -90,7 +90,14 @@ setClass(
   new("Spectra", wl=wl, nir=nir, id=id)
 }
 
-"SpectraDataFrame" <- function(wl=numeric(), nir=matrix(), id=as.character(NA), data=data.frame()) {
+"SpectraDataFrame" <- function(..., wl=numeric(), nir=matrix(), id=as.character(NA), data=data.frame()) {
+#   # Initialisation from SpectradataFrame object(s)
+#   dotargs <- list(...)
+#   if (any(sapply(dotargs, class) == "SpectraDataFrame")) {
+#     id.SDFs <- which(sapply(dotargs, class) == "SpectraDataFrame")
+#     
+#   }
+
   # Initialization from an existing Spectra object
   if (is(wl, 'Spectra')){
     wl <- wl@wl
@@ -292,7 +299,7 @@ get_wl.Spectra<- function(object){
 setMethod("get_wl", "Spectra", get_wl.Spectra)
 setMethod("get_wl", "SpectraDataFrame", get_wl.Spectra)
 
-## Methods
+## manipulation methods
 
 # Melting the spectra matrix
 melt_spectra <- function(obj, ...){
@@ -311,3 +318,90 @@ melt_spectra <- function(obj, ...){
   names(res)[3] <- "nir"
   res
 }
+
+## methods overloads
+
+
+# specific SpectraDataFrame
+
+names.SpectraDataFrame <- function(x) names(x@data)
+
+"names<-.SpectraDataFrame" <- function(x, value) { 
+  names(x@data) <- value
+  x 
+}
+
+setMethod("$", "SpectraDataFrame",
+  definition=function(x, name) x@data[[name]]
+)
+
+setReplaceMethod("$", "SpectraDataFrame",
+  definition=function(x, name, value) {
+    x@data[[name]] <- value
+    x
+  }
+)
+
+setMethod("[[", c("SpectraDataFrame", "ANY", "missing"), 
+  function(x, i, j, ...) {
+    if (!("data" %in% slotNames(x)))
+      stop("no [[ method for object without attributes")
+    x@data[[i]]
+  }
+)
+
+setReplaceMethod("[[", c("SpectraDataFrame", "ANY", "missing", "ANY"), 
+  function(x, i, j, value) {
+    if (!("data" %in% slotNames(x)))
+      stop("no [[ method for object without attributes")
+    x@data[[i]] <- value
+    x
+  }
+)
+
+.add.Spectra <- function(x, y){
+  tmp <- list()
+  if (identical(x@wl, y@wl)) 
+    tmp$wl <- x@wl
+  else 
+    stop('trying to add objects with different wavelength ranges')
+  if (identical(ncol(x@wl), ncol(y@wl)))
+    tmp$nir <- rbind(x@nir, y@nir)
+  else 
+    stop('trying to add objects with different wavelength ranges')
+  if (!any(x@id %in% y@id)) 
+    tmp$id <- c(x@id, y@id)
+  else 
+    stop('trying to add objects with overlapping ids')
+  if (("data" %in% slotNames(x)) & ("data" %in% slotNames(y))) {
+    require(plyr)
+    tmp$data <- join(x@data, y@data, type="full")
+    res <- new("SpectraDataFrame", wl=tmp$wl, nir=tmp$nir, id=tmp$id, data=tmp$data)
+  }
+  else 
+    res <- new("Spectra", wl=tmp$wl, nir=tmp$nir, id=tmp$id)
+  res
+}
+
+add.Spectra <- function(sdf1, sdf2, ...){
+  if (nargs() < 2) stop('this function needs more than one argument') 
+  SDF <- list(sdf1, sdf2)
+  nSDF <- 2
+  dotargs <- list(...)
+  if (length(dotargs) > 0) {
+    if (all(sapply(dotargs, inherits) == "Spectra")) {
+      nSDF <- 2 + length(dotargs)
+      for (i in length(dotargs)){
+	SDF[[2+i]] <- dotargs[[i]]
+      }
+    } 
+    else 
+      stop('the arguments must be Spectra objects')
+  }
+  res <- sdf1
+  for (i in 2:nSDF){
+    res <- .add.Spectra(res, SDF[[i]])
+  }
+  res
+}
+
