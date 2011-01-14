@@ -272,8 +272,24 @@ get_data.SpectraDataFrame <- function(object){
 
 setMethod("get_data", "SpectraDataFrame", get_data.SpectraDataFrame)
 
-# Getting the spectra matrix
+# Modifying the spectra matrix
+"set_spectra<-.Spectra" <- function(obj, id=obj@id, value){
+  if (all(id %in% obj@id)){
+    id.lines <- which(obj@id %in% id)
+    
+    if (nrow(value) != length(id))
+      stop("the matrix you try to substitute does not have suitable dimensions")
+    if (ncol(value) != length(obj@wl))
+      stop("inconsistent wavelengths")
+    
+    obj@nir[id.lines,] <- value
+  }
+  else 
+    stop('the proposed ids are not matching the object ids')
+  obj
+}
 
+# Getting the spectra matrix
 setGeneric("get_spectra", function(object, ...){
   standardGeneric("get_spectra")
   }
@@ -312,7 +328,7 @@ melt_spectra <- function(obj, ...){
   else {
     if ((inherits(obj, 'data.frame')) | (inherits(obj, 'matrix'))){
       x <- obj
-    } else stop('The object youb try to melt either be a matrix or data.frame, or a Spectra* object')
+    } else stop('The object you try to melt either be a matrix or data.frame, or a Spectra* object')
   }
   res <- reshape2::melt(x, varnames=c('id', 'wl'))
   names(res)[3] <- "nir"
@@ -321,6 +337,9 @@ melt_spectra <- function(obj, ...){
 
 ## methods overloads
 
+# generic Spectra*
+
+# specific Spectra
 
 # specific SpectraDataFrame
 
