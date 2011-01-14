@@ -253,6 +253,7 @@ setMethod(
 
 ## Accessors
 
+# Getting the data
 setGeneric("get_data", function(object, ...){
   standardGeneric("get_data")
   }
@@ -269,8 +270,9 @@ setGeneric("get_spectra", function(object, ...){
   }
 )
 
+# Getting the spectra matrix
 get_spectra.Spectra<- function(object){
-    object@nir
+    object@nir, type
 }
 
 setMethod("get_spectra", "Spectra", get_spectra.Spectra)
@@ -281,9 +283,26 @@ setGeneric("wl", function(object, ...){
   }
 )
 
-wl.Spectra<- function(object){
+# Getting the wavelengths
+get_wl.Spectra<- function(object){
     object@wl
 }
 
-setMethod("wl", "Spectra", wl.Spectra)
-setMethod("wl", "SpectraDataFrame", wl.Spectra)
+setMethod("get_wl", "Spectra", get_wl.Spectra)
+setMethod("get_wl", "SpectraDataFrame", get_wl.Spectra)
+
+## Methods
+
+# Melting the spectra matrix
+melt_spectra <- function(obj, ...){
+  # if obj is Spectra* class
+  if (inherits(obj, 'Spectra')){
+    x <- get_spectra(obj)
+  }
+  # if obj is a data.frame or a matrix (ass returned by get_spectra)
+  else {
+    if ((inherits(obj, 'data.frame')) | (inherits(obj, 'matrix'))){
+      x <- obj
+    } else stop('The object youb try to melt either be a matrix or data.frame, or a Spectra* object')
+  }
+}
