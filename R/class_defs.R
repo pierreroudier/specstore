@@ -265,25 +265,26 @@ get_data.SpectraDataFrame <- function(object){
 
 setMethod("get_data", "SpectraDataFrame", get_data.SpectraDataFrame)
 
+# Getting the spectra matrix
+
 setGeneric("get_spectra", function(object, ...){
   standardGeneric("get_spectra")
   }
 )
 
-# Getting the spectra matrix
 get_spectra.Spectra<- function(object){
-    object@nir, type
+    object@nir
 }
 
 setMethod("get_spectra", "Spectra", get_spectra.Spectra)
 setMethod("get_spectra", "SpectraDataFrame", get_spectra.Spectra)
 
-setGeneric("wl", function(object, ...){
-  standardGeneric("wl")
+# Getting the wavelengths
+setGeneric("get_wl", function(object, ...){
+  standardGeneric("get_wl")
   }
 )
 
-# Getting the wavelengths
 get_wl.Spectra<- function(object){
     object@wl
 }
@@ -295,6 +296,7 @@ setMethod("get_wl", "SpectraDataFrame", get_wl.Spectra)
 
 # Melting the spectra matrix
 melt_spectra <- function(obj, ...){
+  require(reshape2)
   # if obj is Spectra* class
   if (inherits(obj, 'Spectra')){
     x <- get_spectra(obj)
@@ -305,4 +307,7 @@ melt_spectra <- function(obj, ...){
       x <- obj
     } else stop('The object youb try to melt either be a matrix or data.frame, or a Spectra* object')
   }
+  res <- reshape2::melt(x, varnames=c('id', 'wl'))
+  names(res)[3] <- "nir"
+  res
 }
