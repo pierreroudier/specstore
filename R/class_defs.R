@@ -359,6 +359,11 @@ setReplaceMethod("[[", c("SpectraDataFrame", "ANY", "missing", "ANY"),
   }
 )
 
+setGeneric("add", function(x, y, ...){
+  standardGeneric("add")
+  }
+)
+
 .add.Spectra <- function(x, y){
   tmp <- list()
   if (identical(x@wl, y@wl)) 
@@ -399,9 +404,13 @@ add.Spectra <- function(sdf1, sdf2, ...){
       stop('the arguments must be Spectra objects')
   }
   res <- sdf1
-  for (i in 2:nSDF){
+  for (i in 2:nSDF)
     res <- .add.Spectra(res, SDF[[i]])
-  }
   res
 }
+
+setMethod("add", signature=c("Spectra", "Spectra"), 
+  function(x,y,...) add.Spectra(x, y, ...))
+setMethod("add", signature=c("SpectraDataFrame", "SpectraDataFrame"), 
+  function(x,y, ...) add.Spectra(x, y,...))
 
