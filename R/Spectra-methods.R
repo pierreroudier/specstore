@@ -89,7 +89,7 @@ setMethod(
     cat(paste("Object of class ", class(object), "\n", sep = ""))
     cat("Set of ", length(object@id)," spectra\n", sep='')
     if (length(object@id) > 0){
-      cat("Wavelength range: ", min(object@wl, na.rm=TRUE),"-",max(object@wl, na.rm=TRUE)," ", object[["units"]], "\n", sep="")
+      cat("Wavelength range: ", min(object@wl, na.rm=TRUE),"-",max(object@wl, na.rm=TRUE)," ", object@units, "\n", sep="")
       SpectralResolution <- getSpectralResolution(object)
       if (length(SpectralResolution) > 1) 
         cat("Spectral resolution: irregular wavelength spacing\n")
@@ -97,7 +97,7 @@ setMethod(
         if (length(SpectralResolution) == 0)
           cat("Spectral resolution: NA\n")
         else 
-          cat("Spectral resolution: ", SpectralResolution , " ", object[["units"]], "\n", sep="")
+          cat("Spectral resolution: ", SpectralResolution , " ", object@units, "\n", sep="")
       }
     }
     if ("data" %in% slotNames(object)) {
@@ -167,7 +167,8 @@ setMethod("getSpectralResolution", "numeric", getSpectralResolution.numeric)
 setMethod("getSpectralResolution", "integer", getSpectralResolution.numeric)
 setMethod("getSpectralResolution", "Spectra", getSpectralResolution.Spectra)
 
-## Adding data to the object, or adding data together
+## Adding objects together
+# Maybe to be moved into the Spectra() and SpectraDataFrame() method.
 
 setGeneric("add", function(x, y, ...){
   standardGeneric("add")
@@ -222,7 +223,27 @@ add.Spectra <- function(sdf1, sdf2, ...){
 setMethod("add", signature=c("Spectra", "Spectra"), 
   function(x,y,...) add.Spectra(x, y, ...))
 
+## Subset the object
+subset.Spectra <- function(obj, id,...){
+  if (is.character(id)) {
+    id <- which(obj@id %in% id) 
+  }
+  if ("data" %in% slotNames(obj)) {
+    if (length(names(obj@data)) == 1) {
+      df <- data.frame(obj@data[id,])
+      names(df) <- names(obj@data)
+    } 
+    else
+      df <- obj@data[id,]
+    res <- SpectraDataFrame(wl=obj@wl, nir=obj@nir[id,], id=obj@id[id], data=df)
+  }
+  else 
+    res <- Spectra(wl=obj@wl, nir=obj@nir[id,], id=obj@id[id])
+  res
+}
+
 ## Melting the spectra matrix
+
 melt_spectra <- function(obj, ...){
   require(reshape2)
   # if obj is Spectra* class
