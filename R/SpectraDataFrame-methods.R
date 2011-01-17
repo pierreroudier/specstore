@@ -123,6 +123,8 @@ subset.SpectraDataFrame <- function(x, subset, select, drop = FALSE, ...) {
     vars <- eval(substitute(select), nl, parent.frame())
   }  
   df_sub <- df[r, vars, drop = drop]
+  # remove unused factors
+  df_sub <- droplevels(df_sub)
   id_selected <- which(rownames(df) %in% rownames(df_sub))
 #   x <- x[id_selected,]
   x <- SpectraDataFrame(wl=get_wl(x), nir=get_spectra(x)[id_selected,], id=get_id(x)[id_selected], units=get_units(x), data=df_sub)
