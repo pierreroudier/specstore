@@ -17,10 +17,24 @@
     # if a matrix is here
     else
       id <- as.character(seq(1, nrow(nir)))
-  } else {
+  } 
+  else {
     # Test of inconsistent ids when id is specified by the user
-    if (nrow(nir) != length(id))
-      stop("number of individuals and number of rows in the spectra matrix don't match")
+    if (is.null(nrow(nir))) { # if theres only one spectra
+      if (length(id) != 1)
+        stop("number of individuals and number of rows in the spectra matrix don't match")
+      if ((length(wl) > 1) & (length(nir) != length(wl)))
+        stop("number of columns in the spectra matrix and number of observed wavelengths don't match")
+      nir <- matrix(nir, nrow=1)
+    } 
+    else {
+      if (nrow(nir) != length(id))
+        stop("number of individuals and number of rows in the spectra matrix don't match")
+      if ((length(wl) > 1) & (ncol(nir) != length(wl)))
+        stop("number of columns in the spectra matrix and number of observed wavelengths don't match")
+      colnames(nir) <- wl
+      rownames(nir) <- id
+    }
   }
   if ((length(wl) > 1) & (ncol(nir) != length(wl)))
     stop("number of columns in the spectra matrix and number of observed wavelengths don't match")
@@ -224,23 +238,44 @@ setMethod("add", signature=c("Spectra", "Spectra"),
   function(x,y,...) add.Spectra(x, y, ...))
 
 ## Subset the object
-subset.Spectra <- function(obj, id,...){
-  if (is.character(id)) {
-    id <- which(obj@id %in% id) 
+
+setMethod("[", c("Spectra", "ANY", "missing"), 
+  function(x, i, j, ... ) {
+    missing.i = missing(i)
+    missing.j = missing(j)
+    nargs = nargs() # e.g., a[3,] gives 2 for nargs, a[3] gives 1.
+    if (missing.i && missing.j) {
+      i = TRUE
+      j = TRUE
+    } else if (missing.j && !missing.i) { 
+      if (nargs == 2) {
+        j = i
+        i = TRUE
+      } else {
+        j = TRUE
+      }
+    } else if (missing.i && !missing.j)
+      i = TRUE
+    if (any(is.na(i))) 
+      stop("NAs not permitted in row index")
+    if (is.character(i)) {
+      i <- which(x@id %in% i) 
+    }
+  #   if (!isTRUE(j)) # i.e., we do some sort of column selection => not sure on what we select (nir? data?)
+    if ("data" %in% slotNames(x)) {
+      if (length(names(x@data)) == 1) {
+        df <- data.frame(x@data[i,])
+        names(df) <- names(x@data)
+      } 
+      else
+        df <- x@data[i,]
+      res <- SpectraDataFrame(wl=x@wl, nir=x@nir[i,], id=x@id[i], data=df)
+    }
+    else 
+      res <- Spectra(wl=x@wl, nir=x@nir[i,], id=x@id[i])
+    res  
   }
-  if ("data" %in% slotNames(obj)) {
-    if (length(names(obj@data)) == 1) {
-      df <- data.frame(obj@data[id,])
-      names(df) <- names(obj@data)
-    } 
-    else
-      df <- obj@data[id,]
-    res <- SpectraDataFrame(wl=obj@wl, nir=obj@nir[id,], id=obj@id[id], data=df)
-  }
-  else 
-    res <- Spectra(wl=obj@wl, nir=obj@nir[id,], id=obj@id[id])
-  res
-}
+)
 
 ## Melting the spectra matrix
 
