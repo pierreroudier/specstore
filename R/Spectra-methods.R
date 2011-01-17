@@ -143,6 +143,26 @@ setMethod("get_wl", "Spectra",
     object@wl
 )
 
+# Getting the ids
+setGeneric("get_id", function(object, ...)
+  standardGeneric("get_id")
+)
+
+setMethod("get_id", "Spectra", 
+  function(object)
+    object@id
+)
+
+# Getting the units
+setGeneric("get_units", function(object, ...)
+  standardGeneric("get_units")
+)
+
+setMethod("get_units", "Spectra", 
+  function(object)
+    object@units
+)
+
 ## Modifying the spectra matrix
 ## WORK NEEDED!!
 
