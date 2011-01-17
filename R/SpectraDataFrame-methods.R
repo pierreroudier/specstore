@@ -26,22 +26,32 @@
     if (all(is.na(id))) {
       # If the object is void
       if (length(nir) == 1) 
-  id <- as.character(NULL)
+        id <- as.character(NULL)
       # if a matrix is here
       else 
-  id <- as.character(seq(1, nrow(nir)))
-    } else {
+        id <- as.character(seq(1, nrow(nir)))
+    } 
+    else {
       # Test of inconsistent ids when id is specified by the user
-      if (nrow(nir) != length(id))
-  stop("number of individuals and number of rows in the spectra matrix don't match")
+      if (is.null(nrow(nir))) { # if theres only one spectra
+        if (length(id) != 1)
+          stop("number of individuals and number of rows in the spectra matrix don't match")
+        if ((length(wl) > 1) & (length(nir) != length(wl)))
+          stop("number of columns in the spectra matrix and number of observed wavelengths don't match")
+        nir <- matrix(nir, nrow=1)
+      } 
+      else {
+        if (nrow(nir) != length(id))
+          stop("number of individuals and number of rows in the spectra matrix don't match")
+        if ((length(wl) > 1) & (ncol(nir) != length(wl)))
+          stop("number of columns in the spectra matrix and number of observed wavelengths don't match")
+        colnames(nir) <- wl
+        rownames(nir) <- id
+      }
     }
-    if ((length(wl) > 1) & (ncol(nir) != length(wl)))
-      stop("number of columns in the spectra matrix and number of observed wavelengths don't match")
   }
   if (is(data, "numeric") | is(data, "integer"))
       data <- as.data.frame(data)
-  colnames(nir) <- wl
-  rownames(nir) <- id
   rownames(data) <- id
   new("SpectraDataFrame", wl=wl, nir=nir, id=id, units=units, data=data)
 }
