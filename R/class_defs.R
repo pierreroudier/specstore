@@ -8,12 +8,14 @@ setClass(
   representation=representation(
     wl='numeric',
     nir='matrix',
-    id='character'
+    id='character',
+    units="character"
   ),
   prototype=prototype(
     wl=numeric(),
     nir=matrix(),
-    id=as.character(NA)
+    id=as.character(NA),
+    units=as.character(NA)
   ),
   validity = function(object) {
     # if the wl are given as an integer vector they are translated into a numeric vector
@@ -43,6 +45,7 @@ setClass(
     wl=numeric(),
     nir=matrix(),
     id=as.character(NA),
+    units=as.character(NA),
     data=data.frame()
   ),
   validity = function(object) {
@@ -61,7 +64,7 @@ setClass(
 ## Initializers
 ##
 
-"Spectra" <- function(wl=numeric(), nir=matrix(), id=as.character(NA)) {
+"Spectra" <- function(wl=numeric(), nir=matrix(), id=as.character(NA), units="nm") {
   # if the wl are given as an integer vector they are translated into a numeric vector
   # for clarity (only one type to manage)
   if (is(wl, "integer"))
@@ -87,10 +90,10 @@ setClass(
     stop("number of columns in the spectra matrix and number of observed wavelengths don't match")
   rownames(nir) <- id
   colnames(nir) <- wl
-  new("Spectra", wl=wl, nir=nir, id=id)
+  new("Spectra", wl=wl, nir=nir, id=id, units=units)
 }
 
-"SpectraDataFrame" <- function(..., wl=numeric(), nir=matrix(), id=as.character(NA), data=data.frame()) {
+"SpectraDataFrame" <- function(..., wl=numeric(), nir=matrix(), id=as.character(NA), units="nm", data=data.frame()) {
 #   # Initialisation from SpectradataFrame object(s)
 #   dotargs <- list(...)
 #   if (any(sapply(dotargs, class) == "SpectraDataFrame")) {
@@ -103,6 +106,7 @@ setClass(
     wl <- wl@wl
     nir <- wl@nir
     id <- wl@id
+    units <- wl@units
   }
   else {
     # if the wl are given as an integer vector they are translated into a numeric vector
@@ -134,7 +138,7 @@ setClass(
   colnames(nir) <- wl
   rownames(nir) <- id
   rownames(data) <- id
-  new("SpectraDataFrame", wl=wl, nir=nir, id=id, data=data)
+  new("SpectraDataFrame", wl=wl, nir=nir, id=id, units=units, data=data)
 }
 
 ## basic printing methods for class Spectra
@@ -175,6 +179,7 @@ summary.Spectra <- function (object, ...){
     obj[["wl"]] = object@wl
     obj[["id"]] = object@id
     obj[["nir"]] = object@nir
+    obj[["units"]] = object@units
     if ("data" %in% slotNames(object)) {
         if (ncol(object@data) > 1) 
             obj[["data"]] = summary(object@data)
@@ -192,7 +197,7 @@ print.summary.Spectra = function(x, ...) {
     cat("Set of ", length(x[['id']])," spectra\n", sep = "")
     if (length(x[['id']]) > 0){
       cat("Wavelength range: ")
-      cat(min(x[["wl"]], na.rm=TRUE), " to ", max(x[["wl"]], na.rm=TRUE)," nm \n", sep="")
+      cat(min(x[["wl"]], na.rm=TRUE), " to ", max(x[["wl"]], na.rm=TRUE)," ", x[["units"]], "\n", sep="")
       SpectralResolution <- getSpectralResolution(x[["wl"]])
       if (length(SpectralResolution) > 1) 
 	cat("Spectral resolution: irregular wavelength spacing\n")
@@ -200,7 +205,7 @@ print.summary.Spectra = function(x, ...) {
 	if (length(SpectralResolution) == 0)
 	  cat("Spectral resolution: NA\n")
 	else 
-	  cat("Spectral resolution: ", SpectralResolution , " nm\n", sep="")
+	  cat("Spectral resolution: ", SpectralResolution , " ",  x[["units"]], "\n", sep="")
       }
       if (!is.null(x$data)) {
 	  cat("Data attributes:\n")
@@ -221,7 +226,7 @@ setMethod(
     cat(paste("Object of class ", class(object), "\n", sep = ""))
     cat("Set of ", length(object@id)," spectra\n", sep='')
     if (length(object@id) > 0){
-      cat("Wavelength range: ", min(object@wl, na.rm=TRUE),"-",max(object@wl, na.rm=TRUE),' nm \n', sep="")
+      cat("Wavelength range: ", min(object@wl, na.rm=TRUE),"-",max(object@wl, na.rm=TRUE), " ", object[["units"]], "\n", sep="")
       SpectralResolution <- getSpectralResolution(object)
       if (length(SpectralResolution) > 1) 
 	cat("Spectral resolution: irregular wavelength spacing\n")
@@ -229,7 +234,7 @@ setMethod(
 	if (length(SpectralResolution) == 0)
 	  cat("Spectral resolution: NA\n")
 	else 
-	  cat("Spectral resolution: ", SpectralResolution , " nm\n", sep="")
+	  cat("Spectral resolution: ", SpectralResolution , " ", object[["units"]], "\n", sep="")
       }
     }
   }
@@ -242,7 +247,7 @@ setMethod(
     cat(paste("Object of class ", class(object), "\n", sep = ""))
     cat("Set of ", length(object@id)," spectra\n", sep='')
     if (length(object@id) > 0){
-      cat("Wavelength range: ", min(object@wl, na.rm=TRUE),"-",max(object@wl, na.rm=TRUE),' nm \n', sep="")
+      cat("Wavelength range: ", min(object@wl, na.rm=TRUE),"-",max(object@wl, na.rm=TRUE)," ", object[["units"]], "\n", sep="")
       SpectralResolution <- getSpectralResolution(object)
       if (length(SpectralResolution) > 1) 
 	cat("Spectral resolution: irregular wavelength spacing\n")
@@ -250,7 +255,7 @@ setMethod(
 	if (length(SpectralResolution) == 0)
 	  cat("Spectral resolution: NA\n")
 	else 
-	  cat("Spectral resolution: ", SpectralResolution , " nm\n", sep="")
+	  cat("Spectral resolution: ", SpectralResolution , " ", object[["units"]], "\n", sep="")
       }
     }
     cat("Data attributes:\n")
@@ -273,6 +278,7 @@ get_data.SpectraDataFrame <- function(object){
 setMethod("get_data", "SpectraDataFrame", get_data.SpectraDataFrame)
 
 # Modifying the spectra matrix
+# WORK NEEDED!!
 "set_spectra<-.Spectra" <- function(obj, id=obj@id, value){
   if (all(id %in% obj@id)){
     id.lines <- which(obj@id %in% id)
@@ -330,8 +336,8 @@ melt_spectra <- function(obj, ...){
       x <- obj
     } else stop('The object you try to melt either be a matrix or data.frame, or a Spectra* object')
   }
-  res <- reshape2::melt(x, varnames=c('id', 'wl'))
-  names(res)[3] <- "nir"
+  res <- reshape2:::melt.array(x, varnames=c('id', 'wl'), value.name="nir")
+#   names(res)[3] <- "nir"
   res
 }
 
