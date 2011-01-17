@@ -100,3 +100,31 @@ setReplaceMethod("[[", c("SpectraDataFrame", "ANY", "missing", "ANY"),
     x
   }
 )
+
+## Subset SDF with a subset/select query
+
+subset.SpectraDataFrame <- function(x, subset, select, drop = FALSE, ...) {
+  # adapted from subset.data.frame
+  df <- get_data(x)
+  if (missing(subset)) 
+        r <- TRUE
+  else {
+    e <- substitute(subset)
+    r <- eval(e, df, parent.frame())
+    if (!is.logical(r)) 
+	stop("'subset' must evaluate to logical")
+    r <- r & !is.na(r)
+  }
+  if (missing(select)) 
+    vars <- TRUE
+  else {
+    nl <- as.list(seq_along(df))
+    names(nl) <- names(df)
+    vars <- eval(substitute(select), nl, parent.frame())
+  }  
+  df_sub <- df[r, vars, drop = drop]
+  id_selected <- which(rownames(df) %in% rownames(df_sub))
+#   x <- x[id_selected,]
+  x <- SpectraDataFrame(wl=get_wl(x), nir=get_spectra(x)[id_selected,], id=get_id(x)[id_selected], units=get_units(x), data=df_sub)
+  x
+}
