@@ -71,9 +71,9 @@ setAs("SpectraDataFrame", "data.frame", function(from)
 
 ## Getting the data
 
-setGeneric("get_data", function(object, ...)
-  standardGeneric("get_data")
-)
+if (!isGeneric("get_data"))
+  setGeneric("get_data", function(object, ...)
+    standardGeneric("get_data"))
 
 setMethod("get_data", "SpectraDataFrame", 
   function(object)
@@ -176,15 +176,26 @@ unseparate.SpectraDataFrame <- function(obj){
 
 setMethod("unseparate", "list", unseparate.SpectraDataFrame)
 
-## Transform the Spectra object
+## Transform the SpectraDataFrame object
 
-transform.SpectraDataFrame <- function (obj, ...){
-  # for that class the transform is focusing exclusively on the NIR spectra
+transform.SpectraDataFrame <- function (obj, condition, ...){
   require(reshape2)
-  nir <- melt(get_spectra(obj), value.name="nir", varnames=c('id','wl'))
-  nir <- transform(nir, ...)
-  nir <- matrix(nir$nir, nrow=length(obj), ncol=length(get_wl(obj)))
-  rownames(nir) <- get_id(obj)
-  colnames(nir) <- get_wl(obj)  
-  Spectra(wl=get_wl(obj), nir=nir, id=get_id(obj), units=get_units(obj))
+  require(stringr)
+  data <- get_data(obj)
+  condition_call <- substitute(condition)
+  # you want to affect the spectra
+  if (str_detect(deparse(condition_call), "nir")) {
+    nir <- melt(get_spectra(obj), value.name="nir", varnames=c('id','wl'))
+    nir <- transform(nir, ...)
+    nir <- matrix(nir$nir, nrow=length(obj), ncol=length(get_wl(obj)))
+    rownames(nir) <- get_id(obj)
+    colnames(nir) <- get_wl(obj)  
+    res <- SpectraDataFrame(wl=get_wl(obj), nir=nir, id=get_id(obj), units=get_units(obj), data=data)
+  }
+  # you want to affect the data
+  else {
+    data <- transform(data, condition)
+    res <- SpectraDataFrame(wl=get_wl(obj), nir=get_spectra(nir), id=get_id(obj), units=get_units(obj), data=data)
+  }
+  res
 }
