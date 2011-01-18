@@ -174,6 +174,12 @@ setMethod("get_units", "Spectra",
     object@units
 )
 
+# overload length() to give us the number of samples
+setMethod(f='length', signature='SoilProfile',
+  definition=function(x)
+    length(get_id(x))
+)
+
 ## Exporting Spectra* objects
 
 write.table.Spectra <- function(obj, file, ...){
