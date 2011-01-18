@@ -256,13 +256,17 @@ setGeneric("add", function(x, y, ...){
     tmp$id <- c(x@id, y@id)
   else 
     stop('trying to add objects with overlapping ids')
+  if (x@units %in% y@units) 
+    tmp$units <- x@units
+  else 
+    stop('trying to add objects with different wavelength units')
   if (("data" %in% slotNames(x)) & ("data" %in% slotNames(y))) {
     require(plyr)
     tmp$data <- join(x@data, y@data, type="full")
-    res <- new("SpectraDataFrame", wl=tmp$wl, nir=tmp$nir, id=tmp$id, data=tmp$data)
+    res <- SpectraDataFrame(wl=tmp$wl, nir=tmp$nir, id=tmp$id, units=tmp$units, data=tmp$data)
   }
   else 
-    res <- new("Spectra", wl=tmp$wl, nir=tmp$nir, id=tmp$id)
+    res <- Spectra(wl=tmp$wl, nir=tmp$nir, id=tmp$id, units=tmp$units)
   res
 }
 
@@ -274,9 +278,8 @@ add.Spectra <- function(sdf1, sdf2, ...){
   if (length(dotargs) > 0) {
     if (all(sapply(dotargs, inherits) == "Spectra")) {
       nSDF <- 2 + length(dotargs)
-      for (i in length(dotargs)){
-  SDF[[2+i]] <- dotargs[[i]]
-      }
+      for (i in length(dotargs))
+	SDF[[2+i]] <- dotargs[[i]]
     } 
     else 
       stop('the arguments must be Spectra objects')
@@ -290,7 +293,7 @@ add.Spectra <- function(sdf1, sdf2, ...){
 setMethod("add", signature=c("Spectra", "Spectra"), 
   function(x,y,...) add.Spectra(x, y, ...))
 
-## Subset the object
+## overloads
 
 setMethod("[", c("Spectra", "ANY", "missing"), 
   function(x, i, j, ... ) {
