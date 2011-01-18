@@ -75,7 +75,7 @@ print.summary.Spectra = function(x, ...) {
     if (length(x[['id']]) > 0){
       cat("Wavelength range: ")
       cat(min(x[["wl"]], na.rm=TRUE), " to ", max(x[["wl"]], na.rm=TRUE)," ", x[["units"]], "\n", sep="")
-      SpectralResolution <- getSpectralResolution(x[["wl"]])
+      SpectralResolution <- get_resolution(x[["wl"]])
       if (length(SpectralResolution) > 1) 
   cat("Spectral resolution: irregular wavelength spacing\n")
       else {
@@ -104,7 +104,7 @@ setMethod(
     cat("Set of ", length(object@id)," spectra\n", sep='')
     if (length(object@id) > 0){
       cat("Wavelength range: ", min(object@wl, na.rm=TRUE),"-",max(object@wl, na.rm=TRUE)," ", object@units, "\n", sep="")
-      SpectralResolution <- getSpectralResolution(object)
+      SpectralResolution <- get_resolution(object)
       if (length(SpectralResolution) > 1) 
         cat("Spectral resolution: irregular wavelength spacing\n")
       else {
@@ -217,22 +217,22 @@ write.table.Spectra <- function(obj, file, ...){
 
 ## Returns spectral resolution of the wavelengths
 
-setGeneric("getSpectralResolution", function(object, ...)
-  standardGeneric("getSpectralResolution")
+setGeneric("get_resolution", function(object, ...)
+  standardGeneric("get_resolution")
 )
 
-getSpectralResolution.numeric <- function(object, digits=10, ...){
+get_resolution.numeric <- function(object, digits=10, ...){
   unique(round(diff(object), digits=digits)) # round - otherwise diff() picks some unsignificant values
 }
 
-getSpectralResolution.Spectra <- function(object, digits=10, ...){
+get_resolution.Spectra <- function(object, digits=10, ...){
   x <- get_wl(object)
   unique( round( diff(x), digits=digits) )
 }
 
-setMethod("getSpectralResolution", "numeric", getSpectralResolution.numeric)
-setMethod("getSpectralResolution", "integer", getSpectralResolution.numeric)
-setMethod("getSpectralResolution", "Spectra", getSpectralResolution.Spectra)
+setMethod("get_resolution", "numeric", get_resolution.numeric)
+setMethod("get_resolution", "integer", get_resolution.numeric)
+setMethod("get_resolution", "Spectra", get_resolution.Spectra)
 
 ## Adding objects together
 # Maybe to be moved into the Spectra() and SpectraDataFrame() method.
