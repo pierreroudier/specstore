@@ -121,6 +121,17 @@ setMethod(
   }
 )
 
+## coercition methods
+
+as.data.frame.Spectra = function(x, ...)  {
+  df <- as.data.frame(get_spectra(x))
+  names(df) <- get_wl(x)
+  df
+}
+
+setAs("Spectra", "data.frame", function(from)
+	as.data.frame.Spectra(from))
+
 ## Accessing data
 
 # Getting the spectra matrix
@@ -163,6 +174,22 @@ setMethod("get_units", "Spectra",
     object@units
 )
 
+## Exporting Spectra* objects
+
+write.table.Spectra <- function(obj, file, ...){
+  df <- as.data.frame(get_spectra(obj))
+  if ("data" %in% slotNames(obj)) {
+    data <- get_data(obj)
+    df <- data.frame(data, df)
+    names(df) <- c(names(data), get_wl(obj))
+  }
+  else {
+    names(df) <- get_wl(obj)
+  }
+  write.table(x=df, file, ...)
+}
+
+
 ## Modifying the spectra matrix
 ## WORK NEEDED!!
 
@@ -193,7 +220,7 @@ getSpectralResolution.numeric <- function(object, digits=10, ...){
 }
 
 getSpectralResolution.Spectra <- function(object, digits=10, ...){
-  x <- object@wl
+  x <- get_wl(object)
   unique( round( diff(x), digits=digits) )
 }
 
