@@ -45,10 +45,9 @@
 
 ## SUMMARY
 
-setGeneric("summary", function(object, ...){
-  standardGeneric("summary")
-  }
-)
+if (!isGeneric("summary"))
+  setGeneric("summary", function(object, ...)
+    standardGeneric("summary"))
 
 summary.Spectra <- function (object, ...){
     obj = list()
@@ -135,9 +134,9 @@ setAs("Spectra", "data.frame", function(from)
 ## Accessing data
 
 # Getting the spectra matrix
-setGeneric("get_spectra", function(object, ...)
-  standardGeneric("get_spectra")
-)
+if (!isGeneric("get_spectra"))
+  setGeneric("get_spectra", function(object, ...)
+    standardGeneric("get_spectra"))
 
 setMethod("get_spectra", "Spectra", 
   function(object)
@@ -145,9 +144,9 @@ setMethod("get_spectra", "Spectra",
 )
 
 # Getting the wavelengths
-setGeneric("get_wl", function(object, ...)
-  standardGeneric("get_wl")
-)
+if (!isGeneric("get_wl"))
+  setGeneric("get_wl", function(object, ...)
+    standardGeneric("get_wl"))
 
 setMethod("get_wl", "Spectra", 
   function(object)
@@ -155,9 +154,9 @@ setMethod("get_wl", "Spectra",
 )
 
 # Getting the ids
-setGeneric("get_id", function(object, ...)
-  standardGeneric("get_id")
-)
+if (!isGeneric("get_id"))
+  setGeneric("get_id", function(object, ...)
+    standardGeneric("get_id"))
 
 setMethod("get_id", "Spectra", 
   function(object)
@@ -165,9 +164,9 @@ setMethod("get_id", "Spectra",
 )
 
 # Getting the units
-setGeneric("get_units", function(object, ...)
-  standardGeneric("get_units")
-)
+if (!isGeneric("get_units"))
+  setGeneric("get_units", function(object, ...)
+    standardGeneric("get_units"))
 
 setMethod("get_units", "Spectra", 
   function(object)
@@ -182,9 +181,9 @@ setMethod(f='length', signature='Spectra',
 
 ## Returns spectral resolution of the wavelengths
 
-setGeneric("get_resolution", function(object, ...)
-  standardGeneric("get_resolution")
-)
+if (!isGeneric("get_resolution"))
+  setGeneric("get_resolution", function(object, ...)
+    standardGeneric("get_resolution"))
 
 get_resolution.numeric <- function(object, digits=10, ...){
   unique(round(diff(object), digits=digits)) # round - otherwise diff() picks some unsignificant values
@@ -261,10 +260,9 @@ setMethod("[", c("Spectra", "ANY", "missing"),
 ## Adding objects together
 # Maybe to be moved into the Spectra() and SpectraDataFrame() method.
 
-setGeneric("add", function(x, y, ...){
-  standardGeneric("add")
-  }
-)
+if (!isGeneric("add"))
+  setGeneric("add", function(x, y, ...)
+    standardGeneric("add"))
 
 .add.Spectra <- function(x, y){
   tmp <- list()
@@ -319,9 +317,13 @@ setMethod("add", signature=c("Spectra", "Spectra"),
 
 ## Transform the Spectra object
 
-transform.Spectra <- function (obj, ...){
+transform.Spectra <- function (obj, condition, ...){
   # for that class the transform is focusing exclusively on the NIR spectra
   require(reshape2)
+  require(stringr)
+  condition_call <- substitute(condition)
+  if (!str_detect(deparse(condition_call), "nir"))
+    stop('use the nir variable in the condition call')
   nir <- melt(get_spectra(obj), value.name="nir", varnames=c('id','wl'))
   nir <- transform(nir, ...)
   nir <- matrix(nir$nir, nrow=length(obj), ncol=length(get_wl(obj)))
