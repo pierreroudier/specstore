@@ -70,6 +70,7 @@ setAs("SpectraDataFrame", "data.frame", function(from)
 	as.data.frame.SpectraDataFrame(from))
 
 ## Getting the data
+
 setGeneric("get_data", function(object, ...)
   standardGeneric("get_data")
 )
@@ -78,13 +79,6 @@ setMethod("get_data", "SpectraDataFrame",
   function(object)
     object@data
 )
-
-names.SpectraDataFrame <- function(x) names(x@data)
-
-"names<-.SpectraDataFrame" <- function(x, value) { 
-  names(x@data) <- value
-  x 
-}
 
 setMethod("$", "SpectraDataFrame",
   definition=function(x, name) x@data[[name]]
@@ -114,6 +108,13 @@ setReplaceMethod("[[", c("SpectraDataFrame", "ANY", "missing", "ANY"),
   }
 )
 
+names.SpectraDataFrame <- function(x) names(x@data)
+
+"names<-.SpectraDataFrame" <- function(x, value) { 
+  names(x@data) <- value
+  x 
+}
+
 ## Subset SDF with a subset/select query
 
 subset.SpectraDataFrame <- function(x, subset, select, drop = FALSE, ...) {
@@ -139,7 +140,6 @@ subset.SpectraDataFrame <- function(x, subset, select, drop = FALSE, ...) {
   # remove unused factors
   df_sub <- droplevels(df_sub)
   id_selected <- which(rownames(df) %in% rownames(df_sub))
-#   x <- x[id_selected,]
   x <- SpectraDataFrame(wl=get_wl(x), nir=get_spectra(x)[id_selected,], id=get_id(x)[id_selected], units=get_units(x), data=df_sub)
   x
 }
@@ -148,9 +148,8 @@ subset.SpectraDataFrame <- function(x, subset, select, drop = FALSE, ...) {
 
 setMethod("split", "SpectraDataFrame", split.data.frame)
 
-## Sample
-
 ## Separate calibration set vs validation set
+
 if (!isGeneric("separate"))
   setGeneric("separate", function(obj, calibration, ...)
     standardGeneric("separate"))
@@ -164,3 +163,15 @@ separate.SpectraDataFrame <- function(obj, calibration){
 }
 
 setMethod("separate", "SpectraDataFrame", separate.SpectraDataFrame)
+
+if (!isGeneric("unseparate"))
+  setGeneric("unseparate", function(obj, calibration, ...)
+    standardGeneric("unseparate"))
+
+unseparate.SpectraDataFrame <- function(obj){
+  # Warning: does not recover the order of the samples
+  #
+  add(obj$calibration, obj$validation)
+}
+
+setMethod("unseparate", "list", unseparate.SpectraDataFrame)
