@@ -143,3 +143,24 @@ subset.SpectraDataFrame <- function(x, subset, select, drop = FALSE, ...) {
   x <- SpectraDataFrame(wl=get_wl(x), nir=get_spectra(x)[id_selected,], id=get_id(x)[id_selected], units=get_units(x), data=df_sub)
   x
 }
+
+## Split
+
+setMethod("split", "SpectraDataFrame", split.data.frame)
+
+## Sample
+
+## Separate calibration set vs validation set
+if (!isGeneric("separate"))
+  setGeneric("separate", function(obj, calibration, ...)
+    standardGeneric("separate"))
+
+separate.SpectraDataFrame <- function(obj, calibration){
+  if (calibration < 1)
+    calibration <- floor(calibration*length(obj))
+  calib <- sample(x=seq_len(length(obj)), size=calibration, replace=FALSE)
+  valid <- setdiff(seq_len(length(obj)), calib)
+  list(calibration=obj[calib,], validation=obj[valid,])
+}
+
+setMethod("separate", "SpectraDataFrame", separate.SpectraDataFrame)
