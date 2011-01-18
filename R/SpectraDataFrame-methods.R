@@ -56,6 +56,19 @@
   new("SpectraDataFrame", wl=wl, nir=nir, id=id, units=units, data=data)
 }
 
+## coercition methods
+
+as.data.frame.SpectraDataFrame = function(x, ...)  {
+  df <- as.data.frame(get_spectra(x))
+  data <- get_data(x)
+  df <- data.frame(data, df)
+  names(df) <- c(names(data), get_wl(x))
+  df
+}
+
+setAs("SpectraDataFrame", "data.frame", function(from)
+	as.data.frame.SpectraDataFrame(from))
+
 ## Getting the data
 setGeneric("get_data", function(object, ...)
   standardGeneric("get_data")
