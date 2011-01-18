@@ -175,3 +175,16 @@ unseparate.SpectraDataFrame <- function(obj){
 }
 
 setMethod("unseparate", "list", unseparate.SpectraDataFrame)
+
+## Transform the Spectra object
+
+transform.SpectraDataFrame <- function (obj, ...){
+  # for that class the transform is focusing exclusively on the NIR spectra
+  require(reshape2)
+  nir <- melt(get_spectra(obj), value.name="nir", varnames=c('id','wl'))
+  nir <- transform(nir, ...)
+  nir <- matrix(nir$nir, nrow=length(obj), ncol=length(get_wl(obj)))
+  rownames(nir) <- get_id(obj)
+  colnames(nir) <- get_wl(obj)  
+  Spectra(wl=get_wl(obj), nir=nir, id=get_id(obj), units=get_units(obj))
+}
