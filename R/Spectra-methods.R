@@ -175,7 +175,7 @@ setMethod("get_units", "Spectra",
 )
 
 # overload length() to give us the number of samples
-setMethod(f='length', signature='SoilProfile',
+setMethod(f='length', signature='Spectra',
   definition=function(x)
     length(get_id(x))
 )
