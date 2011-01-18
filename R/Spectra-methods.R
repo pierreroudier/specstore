@@ -180,21 +180,64 @@ setMethod(f='length', signature='Spectra',
     length(get_id(x))
 )
 
-## Exporting Spectra* objects
+## Returns spectral resolution of the wavelengths
 
-write.table.Spectra <- function(obj, file, ...){
-  df <- as.data.frame(get_spectra(obj))
-  if ("data" %in% slotNames(obj)) {
-    data <- get_data(obj)
-    df <- data.frame(data, df)
-    names(df) <- c(names(data), get_wl(obj))
-  }
-  else {
-    names(df) <- get_wl(obj)
-  }
-  write.table(x=df, file, ...)
+setGeneric("get_resolution", function(object, ...)
+  standardGeneric("get_resolution")
+)
+
+get_resolution.numeric <- function(object, digits=10, ...){
+  unique(round(diff(object), digits=digits)) # round - otherwise diff() picks some unsignificant values
 }
 
+get_resolution.Spectra <- function(object, digits=10, ...){
+  x <- get_wl(object)
+  unique( round( diff(x), digits=digits) )
+}
+
+setMethod("get_resolution", "numeric", get_resolution.numeric)
+setMethod("get_resolution", "integer", get_resolution.numeric)
+setMethod("get_resolution", "Spectra", get_resolution.Spectra)
+
+## overloads
+
+setMethod("[", c("Spectra", "ANY", "missing"), 
+  function(x, i, j, ... ) {
+    missing.i = missing(i)
+    missing.j = missing(j)
+    nargs = nargs() # e.g., a[3,] gives 2 for nargs, a[3] gives 1.
+    if (missing.i && missing.j) {
+      i = TRUE
+      j = TRUE
+    } else if (missing.j && !missing.i) { 
+      if (nargs == 2) {
+        j = i
+        i = TRUE
+      } else {
+        j = TRUE
+      }
+    } else if (missing.i && !missing.j)
+      i = TRUE
+    if (any(is.na(i))) 
+      stop("NAs not permitted in row index")
+    if (is.character(i)) {
+      i <- which(x@id %in% i) 
+    }
+  #   if (!isTRUE(j)) # i.e., we do some sort of column selection => not sure on what we select (nir? data?)
+    if ("data" %in% slotNames(x)) {
+      if (length(names(x@data)) == 1) {
+        df <- data.frame(x@data[i,])
+        names(df) <- names(x@data)
+      } 
+      else
+        df <- x@data[i,]
+      res <- SpectraDataFrame(wl=x@wl, nir=x@nir[i,], id=x@id[i], data=df)
+    }
+    else 
+      res <- Spectra(wl=x@wl, nir=x@nir[i,], id=x@id[i])
+    res  
+  }
+)
 
 ## Modifying the spectra matrix
 ## WORK NEEDED!!
@@ -214,25 +257,6 @@ write.table.Spectra <- function(obj, file, ...){
     stop('the proposed ids are not matching the object ids')
   obj
 }
-
-## Returns spectral resolution of the wavelengths
-
-setGeneric("get_resolution", function(object, ...)
-  standardGeneric("get_resolution")
-)
-
-get_resolution.numeric <- function(object, digits=10, ...){
-  unique(round(diff(object), digits=digits)) # round - otherwise diff() picks some unsignificant values
-}
-
-get_resolution.Spectra <- function(object, digits=10, ...){
-  x <- get_wl(object)
-  unique( round( diff(x), digits=digits) )
-}
-
-setMethod("get_resolution", "numeric", get_resolution.numeric)
-setMethod("get_resolution", "integer", get_resolution.numeric)
-setMethod("get_resolution", "Spectra", get_resolution.Spectra)
 
 ## Adding objects together
 # Maybe to be moved into the Spectra() and SpectraDataFrame() method.
@@ -293,45 +317,18 @@ add.Spectra <- function(sdf1, sdf2, ...){
 setMethod("add", signature=c("Spectra", "Spectra"), 
   function(x,y,...) add.Spectra(x, y, ...))
 
-## overloads
+## Transform the Spectra object
 
-setMethod("[", c("Spectra", "ANY", "missing"), 
-  function(x, i, j, ... ) {
-    missing.i = missing(i)
-    missing.j = missing(j)
-    nargs = nargs() # e.g., a[3,] gives 2 for nargs, a[3] gives 1.
-    if (missing.i && missing.j) {
-      i = TRUE
-      j = TRUE
-    } else if (missing.j && !missing.i) { 
-      if (nargs == 2) {
-        j = i
-        i = TRUE
-      } else {
-        j = TRUE
-      }
-    } else if (missing.i && !missing.j)
-      i = TRUE
-    if (any(is.na(i))) 
-      stop("NAs not permitted in row index")
-    if (is.character(i)) {
-      i <- which(x@id %in% i) 
-    }
-  #   if (!isTRUE(j)) # i.e., we do some sort of column selection => not sure on what we select (nir? data?)
-    if ("data" %in% slotNames(x)) {
-      if (length(names(x@data)) == 1) {
-        df <- data.frame(x@data[i,])
-        names(df) <- names(x@data)
-      } 
-      else
-        df <- x@data[i,]
-      res <- SpectraDataFrame(wl=x@wl, nir=x@nir[i,], id=x@id[i], data=df)
-    }
-    else 
-      res <- Spectra(wl=x@wl, nir=x@nir[i,], id=x@id[i])
-    res  
-  }
-)
+transform.Spectra <- function (obj, ...){
+  # for that class the transform is focusing exclusively on the NIR spectra
+  require(reshape2)
+  nir <- melt(get_spectra(obj), value.name="nir", varnames=c('id','wl'))
+  nir <- transform(nir, ...)
+  nir <- matrix(nir$nir, nrow=length(obj), ncol=length(get_wl(obj)))
+  rownames(nir) <- get_id(obj)
+  colnames(nir) <- get_wl(obj)  
+  Spectra(wl=get_wl(obj), nir=nir, id=get_id(obj), units=get_units(obj))
+}
 
 ## Melting the spectra matrix
 
