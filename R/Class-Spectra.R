@@ -1,5 +1,5 @@
 setClass(
-  Class='Spectra',
+  Class="Spectra",
   representation=representation(
     wl='numeric',
     nir='matrix',
