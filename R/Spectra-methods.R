@@ -123,8 +123,8 @@ setMethod(
 ## coercition methods
 
 as.data.frame.Spectra = function(x, ...)  {
-  df <- as.data.frame(get_spectra(x))
-  names(df) <- get_wl(x)
+  df <- as.data.frame(spectra(x))
+  names(df) <- wl(x)
   df
 }
 
@@ -134,31 +134,31 @@ setAs("Spectra", "data.frame", function(from)
 ## Accessing data
 
 # Getting the spectra matrix
-if (!isGeneric("get_spectra"))
-  setGeneric("get_spectra", function(object, ...)
-    standardGeneric("get_spectra"))
+if (!isGeneric("spectra"))
+  setGeneric("spectra", function(object, ...)
+    standardGeneric("spectra"))
 
-setMethod("get_spectra", "Spectra", 
+setMethod("spectra", "Spectra", 
   function(object)
     object@nir
 )
 
 # Getting the wavelengths
-if (!isGeneric("get_wl"))
-  setGeneric("get_wl", function(object, ...)
-    standardGeneric("get_wl"))
+if (!isGeneric("wl"))
+  setGeneric("wl", function(object, ...)
+    standardGeneric("wl"))
 
-setMethod("get_wl", "Spectra", 
+setMethod("wl", "Spectra", 
   function(object)
     object@wl
 )
 
 # Getting the ids
-if (!isGeneric("get_id"))
-  setGeneric("get_id", function(object, ...)
-    standardGeneric("get_id"))
+if (!isGeneric("id"))
+  setGeneric("id", function(object, ...)
+    standardGeneric("id"))
 
-setMethod("get_id", "Spectra", 
+setMethod("id", "Spectra", 
   function(object)
     object@id
 )
@@ -172,11 +172,17 @@ setMethod("get_units", "Spectra",
   function(object)
     object@units
 )
-
-# overload length() to give us the number of samples
+    
+# overload length() to give us the number of wl
 setMethod(f='length', signature='Spectra',
   definition=function(x)
-    length(get_id(x))
+    ncol(x@nir)
+)
+
+# overload nrow() to give us the number of samples
+setMethod(f='nrow', signature='Spectra',
+definition=function(x)
+    length(id(x))
 )
 
 ## Returns spectral resolution of the wavelengths
@@ -190,7 +196,7 @@ get_resolution.numeric <- function(object, digits=10, ...){
 }
 
 get_resolution.Spectra <- function(object, digits=10, ...){
-  x <- get_wl(object)
+  x <- wl(object)
   unique( round( diff(x), digits=digits) )
 }
 
@@ -238,6 +244,20 @@ setMethod("[", c("Spectra", "ANY", "missing"),
   }
 )
 
+## Upgrade a Spectra object to a SpectraDataFrame
+
+if (!isGeneric('data<-'))
+  setGeneric('data<-', function(object, value) 
+    standardGeneric('data<-'))
+
+setReplaceMethod("data", "Spectra",
+  function(object, value) {
+    if (!inherits(value, "data.frame")) 
+      stop('invalid initialization for SoilProfile object')
+    SpectraDataFrame(object, data=value)
+  }
+)
+
 ## Modifying the spectra matrix
 ## WORK NEEDED!!
 
@@ -266,22 +286,27 @@ if (!isGeneric("add"))
 
 .add.Spectra <- function(x, y){
   tmp <- list()
+
   if (identical(x@wl, y@wl)) 
     tmp$wl <- x@wl
   else 
-    stop('trying to add objects with different wavelength ranges')
+    stop('You can not add objects with different wavelength ranges')
+
   if (identical(ncol(x@wl), ncol(y@wl)))
     tmp$nir <- rbind(x@nir, y@nir)
   else 
-    stop('trying to add objects with different wavelength ranges')
+    stop('You can not add objects with different wavelength ranges')
+
   if (!any(x@id %in% y@id)) 
     tmp$id <- c(x@id, y@id)
   else 
-    stop('trying to add objects with overlapping ids')
+    stop('You can not add objects with overlapping IDs')
+
   if (x@units %in% y@units) 
     tmp$units <- x@units
   else 
-    stop('trying to add objects with different wavelength units')
+    stop('You can not add objects with different wavelength units')
+
   if (("data" %in% slotNames(x)) & ("data" %in% slotNames(y))) {
     require(plyr)
     tmp$data <- join(x@data, y@data, type="full")
@@ -289,31 +314,27 @@ if (!isGeneric("add"))
   }
   else 
     res <- Spectra(wl=tmp$wl, nir=tmp$nir, id=tmp$id, units=tmp$units)
+
   res
 }
 
-add.Spectra <- function(sdf1, sdf2, ...){
-  if (nargs() < 2) stop('this function needs more than one argument') 
-  SDF <- list(sdf1, sdf2)
-  nSDF <- 2
+add.Spectra <- function(...){
   dotargs <- list(...)
-  if (length(dotargs) > 0) {
-    if (all(sapply(dotargs, inherits) == "Spectra")) {
-      nSDF <- 2 + length(dotargs)
-      for (i in length(dotargs))
-	SDF[[2+i]] <- dotargs[[i]]
-    } 
-    else 
-      stop('the arguments must be Spectra objects')
+  if ( !all(sapply(dotargs, function(x) is(x,"Spectra") )) )
+    stop('the arguments must be Spectra objects')
+
+  res <- dotargs[[1]]
+  if (nargs() >= 2) {
+    for (i in 2:length(dotargs))
+      res <- .add.Spectra(res, dotargs[[i]])
   }
-  res <- sdf1
-  for (i in 2:nSDF)
-    res <- .add.Spectra(res, SDF[[i]])
   res
 }
 
 setMethod("add", signature=c("Spectra", "Spectra"), 
   function(x,y,...) add.Spectra(x, y, ...))
+
+
 
 ## Transform the Spectra object
 
@@ -324,12 +345,36 @@ transform.Spectra <- function (obj, condition, ...){
   condition_call <- substitute(condition)
   if (!str_detect(deparse(condition_call), "nir"))
     stop('use the nir variable in the condition call')
-  nir <- melt(get_spectra(obj), value.name="nir", varnames=c('id','wl'))
+  nir <- melt(spectra(obj), value.name="nir", varnames=c('id','wl'))
   nir <- transform(nir, ...)
-  nir <- matrix(nir$nir, nrow=length(obj), ncol=length(get_wl(obj)))
-  rownames(nir) <- get_id(obj)
-  colnames(nir) <- get_wl(obj)  
-  Spectra(wl=get_wl(obj), nir=nir, id=get_id(obj), units=get_units(obj))
+  nir <- matrix(nir$nir, nrow=nrow(obj), ncol=length(wl(obj)))
+  rownames(nir) <- id(obj)
+  colnames(nir) <- wl(obj)  
+  Spectra(wl=wl(obj), nir=nir, id=id(obj), units=get_units(obj))
+}
+
+## Mutate the SpectraDataFrame object	
+
+mutate.Spectra <- function (obj, ...){
+  require(reshape2)
+  require(stringr)
+  require(plyr)
+
+  condition_call <- substitute(list(...))
+
+  # you want to affect the spectra
+  if (!str_detect(deparse(condition_call), "nir")) 
+    stop('You must use the nir variable in the condition call')
+
+  nir <- melt(spectra(obj), varnames=c('id','wl'))
+  names(nir)[which(names(nir) == 'value')] <- 'nir'
+  nir <- mutate(nir, ...)
+  nir <- matrix(nir$nir, nrow=nrow(obj), ncol=length(wl(obj)))
+
+  rownames(nir) <- id(obj)
+  colnames(nir) <- wl(obj)  
+
+  Spectra(wl=wl(obj), nir=nir, id=id(obj), units=get_units(obj))
 }
 
 ## Melting the spectra matrix
@@ -338,9 +383,9 @@ melt_spectra <- function(obj, ...){
   require(reshape2)
   # if obj is Spectra* class
   if (inherits(obj, 'Spectra')){
-    x <- get_spectra(obj)
+    x <- spectra(obj)
   }
-  # if obj is a data.frame or a matrix (ass returned by get_spectra)
+  # if obj is a data.frame or a matrix (ass returned by spectra)
   else {
     if ((inherits(obj, 'data.frame')) | (inherits(obj, 'matrix'))){
       x <- obj
