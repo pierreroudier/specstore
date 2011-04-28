@@ -1,18 +1,27 @@
 "SpectraDataFrame" <- function(..., wl=numeric(), nir=matrix(), id=as.character(NA), units="nm", data=data.frame()) {
-#   # Initialisation from SpectradataFrame object(s)
-#   dotargs <- list(...)
-#   if (any(sapply(dotargs, class) == "SpectraDataFrame")) {
-#     id.SDFs <- which(sapply(dotargs, class) == "SpectraDataFrame")
-#     
-#   }
 
-  # Initialization from an existing Spectra object
-  if (is(wl, 'Spectra')){
-    wl <- wl@wl
-    nir <- wl@nir
-    id <- wl@id
-    units <- wl@units
+  dotargs <- list(...)
+
+  # Initialisation from Spectra object(s)
+  if (any(sapply(dotargs, class) == "Spectra")) {
+    id_spectra <- which(sapply(dotargs, class) == "Spectra")
+    # if there's more than one Spectra object
+    if (length(id_spectra) > 1) {
+      ss <- dotargs[id_spectra]
+      s <- ss[[1]]
+      for (i in 2:length(id_spectra))
+	s <- add(s, ss[[i]])
+    }
+    # if theres only one Spectra object
+    else
+      s <- dotargs[[1]]
+    
+    wl <- wl(s)
+    nir <- spectra(s)
+    id <- id(s)
+    units <- get_units(s)
   }
+
   else {
     # if the wl are given as an integer vector they are translated into a numeric vector
     # for clarity (only one type to manage)
@@ -51,18 +60,21 @@
     }
   }
   if (is(data, "numeric") | is(data, "integer"))
-      data <- as.data.frame(data)
+    data <- as.data.frame(data)
+  
   rownames(data) <- id
+
   new("SpectraDataFrame", wl=wl, nir=nir, id=id, units=units, data=data)
 }
 
 ## coercition methods
 
 as.data.frame.SpectraDataFrame = function(x, ...)  {
-  df <- as.data.frame(get_spectra(x))
+  df <- as.data.frame(spectra(x))
   data <- get_data(x)
-  df <- data.frame(data, df)
-  names(df) <- c(names(data), get_wl(x))
+  id <- id(x)
+  df <- data.frame(id, data, df)
+  names(df) <- c('id', names(data), wl(x))
   df
 }
 
@@ -140,7 +152,7 @@ subset.SpectraDataFrame <- function(x, subset, select, drop = FALSE, ...) {
   # remove unused factors
   df_sub <- droplevels(df_sub)
   id_selected <- which(rownames(df) %in% rownames(df_sub))
-  x <- SpectraDataFrame(wl=get_wl(x), nir=get_spectra(x)[id_selected,], id=get_id(x)[id_selected], units=get_units(x), data=df_sub)
+  x <- SpectraDataFrame(wl=wl(x), nir=spectra(x)[id_selected,], id=id(x)[id_selected], units=get_units(x), data=df_sub)
   x
 }
 
@@ -169,33 +181,39 @@ if (!isGeneric("unseparate"))
     standardGeneric("unseparate"))
 
 unseparate.SpectraDataFrame <- function(obj){
-  # Warning: does not recover the order of the samples
-  #
+  #' Warning: does not recover the order of the samples
+  #'
   add(obj$calibration, obj$validation)
 }
 
 setMethod("unseparate", "list", unseparate.SpectraDataFrame)
 
-## Transform the SpectraDataFrame object
+## Mutate the SpectraDataFrame object	
 
-transform.SpectraDataFrame <- function (obj, condition, ...){
+mutate.SpectraDataFrame <- function (obj, ...){
   require(reshape2)
   require(stringr)
-  data <- get_data(obj)
-  condition_call <- substitute(condition)
+  require(plyr)
+
+  condition_call <- substitute(list(...))
+
   # you want to affect the spectra
   if (str_detect(deparse(condition_call), "nir")) {
-    nir <- melt(get_spectra(obj), value.name="nir", varnames=c('id','wl'))
-    nir <- transform(nir, ...)
-    nir <- matrix(nir$nir, nrow=length(obj), ncol=length(get_wl(obj)))
-    rownames(nir) <- get_id(obj)
-    colnames(nir) <- get_wl(obj)  
-    res <- SpectraDataFrame(wl=get_wl(obj), nir=nir, id=get_id(obj), units=get_units(obj), data=data)
+    nir <- melt(spectra(obj), varnames=c('id','wl'))
+    names(nir)[which(names(nir) == 'value')] <- 'nir'
+    nir <- mutate(nir, ...)
+    nir <- acast(nir, id ~ wl) #matrix(nir$nir, nrow=length(obj), ncol=length(wl(obj)))
+#     rownames(nir) <- id(obj)
+#     colnames(nir) <- wl(obj)  
+    
+    res <- SpectraDataFrame(wl=wl(obj), nir=nir, id=id(obj), units=get_units(obj), data=get_data(obj))
   }
+
   # you want to affect the data
   else {
+    data <- get_data(obj)
     data <- transform(data, condition)
-    res <- SpectraDataFrame(wl=get_wl(obj), nir=get_spectra(nir), id=get_id(obj), units=get_units(obj), data=data)
+    res <- SpectraDataFrame(wl=wl(obj), nir=spectra(nir), id=id(obj), units=get_units(obj), data=data)
   }
   res
 }
