@@ -107,7 +107,7 @@ setReplaceMethod("wl", "data.frame",
   if (any(all_vars == "...")) {
     remainder <- setdiff(names(object), c(all_vars, 'id')) # setting id as a reserved name for id columns
     formula <- lapply(formula, replace.remainder)
-  }
+  } 
   
   res <- list(id=NULL, data=NULL, nir=NULL)
   if (n_elements == 1) { # case spectra(df) <- ~ .
@@ -146,6 +146,9 @@ setReplaceMethod("spectra", "data.frame",
     if (is(value, 'formula')) {
       # parsing the formula to retrieve the different slots (id, data, nir)
       ind.vars <- lapply(.parse_formula(value, object), function(x) which(names(object) %in% x))
+      
+      if (length(ind.vars$nir) == 0) 
+	ind.vars$nir <- .findSpectraCols(object, .parse_formula(value, object)$nir)
       
       nir <- object[, ind.vars$nir]
       if (length(ind.vars$id) == 0)
