@@ -65,6 +65,71 @@ setReplaceMethod("wl", "data.frame",
   }
 )
 
+## Parsing of the formula interface to spectra<-
+##
+## spectra(df) <- id ~ attr1 + attr2 ~ ...
+## spectra(df) <- id ~ ... What if id col do not exist (?)
+## spectra(df) <- ~ ...
+##
+## Inspired from Hadley Wickham's parse_formula
+## https://github.com/hadley/reshape/blob/master/R/formula.r
+##
+## @param formula a formula fot the spectra()<- setter
+## @param object a data.frame
+## @value returns a list of column names for the id slot, 
+## the data slot and the nir slot of teh Spectra* object
+##
+.parse_formula <- function(formula, object){
+  require(stringr)
+
+  formula <- str_c(deparse(formula, 500), collapse="")
+
+  elements <- str_split(formula, fixed("~"))[[1]]
+  length_elements <- aaply(elements, 1, str_length)
+  elements <- elements[which(length_elements > 0)]
+
+  formula <- lapply(str_split(elements, "[+*]"), str_trim)
+  n_elements <- length(formula)
+  all_vars <- unlist(formula)
+
+  replace.remainder <- function(x) {
+    if (any(x == "...")) 
+      c(x[x != "..."], remainder) 
+    else x
+  }
+  
+  ## PLACEHOLDERS
+  ##
+  ## ... : all the columns that havent been used in the formula
+  ## :: : sequence of integers, like 350::2500
+  ## ::: : sequence of numbers, emulates seq(), like 350:::0.1:::2500
+  # if used the "." placeholder
+  if (any(all_vars == "...")) {
+    remainder <- setdiff(names(object), c(all_vars, 'id')) # setting id as a reserved name for id columns
+    formula <- lapply(formula, replace.remainder)
+  }
+  
+  res <- list(id=NULL, data=NULL, nir=NULL)
+  if (n_elements == 1) { # case spectra(df) <- ~ .
+    res[['nir']] <- formula[[1]]
+    
+  }
+  else if (n_elements == 2) {# case spectra(df) <- id ~ .      
+    res[['id']] <- formula[[1]]
+    res[['nir']] <- formula[[2]]
+  }
+  else if (n_elements == 3) {# spectra(df) <- id ~ attr1 + attr2 ~ .
+#     # if id is not present in the colnames
+#     if ((formula[[1]] == 'id') & !(formula[[1]] %in% names(object)))
+    res[['id']] <- formula[[1]]
+    res[['data']] <- formula[[2]]
+    res[['nir']] <- formula[[3]]
+  }
+  else
+    stop('wrong formula.')
+  res
+}
+
 ## setting the spectra of a Spectra* object
 ##
 ## - if applied to a data.frame --> we create a Spectra* object
@@ -78,48 +143,60 @@ setReplaceMethod("spectra", "data.frame",
   function(object, value) {
   
     # if given a formula
-    # eg spectra(df) <- ~ .  | (Spectra object)
-    #    spectra(df) <- organic_carbon + ph ~ . | (SpectraDataFrame object)
-    # if there's only an id : spectra(df) <- id ~ . ; id(df) <- id
     if (is(value, 'formula')) {
-      mf <- model.frame(formula=value, data=object)
-
-      # there are variable(s) on the left side of the formula
-      vars.left <- all.vars(update(value, .~0))
-      if (all(vars.left != '.')) {
-	ind.vars <- which(colnames(mf) %in% vars.left)
-	if (length(ind.vars) == 1) {
-	  data <- data.frame(mf[, ind.vars])
-	  names(data) <- vars.left
-	}
-	else
-	  data <- mf[, ind.vars]
-	mf <- mf[, -ind.vars]	
-      }
-
-      # trying to find the WL
-      wl <- .guessWl(names(mf))
-      res <- Spectra(wl=wl, nir=mf)
-
+      # parsing the formula to retrieve the different slots (id, data, nir)
+      ind.vars <- lapply(.parse_formula(value, object), function(x) which(names(object) %in% x))
+      
+      nir <- object[, ind.vars$nir]
+      if (length(ind.vars$id) == 0)
+	ids <- as.character(NA)
+      else
+	ids <- object[, ind.vars$id]
+      
+      wl <- .guessWl(names(nir))
+      res <- Spectra(id=ids, wl=wl, nir=nir)
+      
       cat("Wavelength range: ")
       cat(min(wl(res), na.rm=TRUE), " to ", max(wl(res), na.rm=TRUE)," ", get_units(res), "\n", sep="")
       cat("Spectral resolution: ", get_resolution(wl(res)) , " ",  get_units(res), "\n", sep="")
-
-      # if some data is present
-      if (vars.left != '.')
-	res <- SpectraDataFrame(res, data=data)
+      
+      if (length(ind.vars$data != 0)) 
+	res <- SpectraDataFrame(res, data=object[, ind.vars$data])
     }
     
     # if given a numeric vector (interpreted as the index of the cols)
     # eg spectra(df) <- 11:2161
     else if (is(value, 'numeric')) {
+      nir <- object[, value]
+      wl <- .guessWl(names(nir))
+      res <- Spectra(wl=wl, nir=nir)
+
+      # if there's some cols left, we create a SpectraDataFrame
+      if (length(value) < ncol(object)) {
+	data <- object[, setdiff(1:ncol(object), value)]
+	res <- SpectraDataFrame(res, data=data)
+      }
     }
+
     # if given a character vector (interpreted as the names of the cols)
     # eg spectra(df) <- c('X450', 'X451', 'X452')
     else if (is(value, 'character')) {
+      ind.nir <- which(names(object) %in% value)
+      nir <- object[, ind.nir]
+      
+      wl <- .guessWl(names(nir))
+      res <- Spectra(wl=wl, nir=nir)
+
+      # if there's some cols left, we create a SpectraDataFrame
+      if (length(value) < ncol(object)) {
+	data <- object[, setdiff(1:ncol(object), ind.nir)]
+	res <- SpectraDataFrame(res, data=data)
+      }
     }
+
     else
-      stop('wrong initialisation')
+      stop('Wrong Spectra initialisation.')
+
     res
   }
 )
