@@ -90,44 +90,66 @@ setReplaceMethod("wl", "data.frame",
 
   formula <- lapply(str_split(elements, "[+*]"), str_trim)
   n_elements <- length(formula)
+  
+  # PLACEHOLDERS
+  #
+  # ... : all the columns that havent been used in the formula
+  # : : sequence of integers, like 350:2500
+  # :n: : sequence of numbers, emulates seq(x,y, by=n), like 350:n:2500
+
+  # if used the ":"  placeholder
+  if (str_detect(formula[[length(formula)]], ":")) { # allowed only on the right hand element of the formula
+    nir_seq <- aaply(unlist(str_split(formula[[length(formula)]], "[:]")), 1, as.numeric)
+    
+    # if this is a sequence of wl with by=1
+    if (length(nir_seq) == 2)
+      nir_wl <- seq(nir_seq[1], nir_seq[2], by=1)
+    # if this is a sequence of wl with by!=1
+    else if (length(nir_seq) == 3) 
+      nir_wl <- seq(nir_seq[1], nir_seq[3], by=nir_seq[2])
+    # if there's more than two ":" placeholders
+    else 
+      stop("Bad formula.")   
+    
+    # finding the corresponding col names
+    cols_nir  <- names(object)[.findSpectraCols(data=object, wl=nir_wl)]
+    # replacing the placeholder by the actual col names
+    formula[[3]] <- cols_nir
+  }
+
   all_vars <- unlist(formula)
 
-  replace.remainder <- function(x) {
-    if (any(x == "...")) 
-      c(x[x != "..."], remainder) 
-    else x
-  }
-  
-  ## PLACEHOLDERS
-  ##
-  ## ... : all the columns that havent been used in the formula
-  ## :: : sequence of integers, like 350::2500
-  ## ::: : sequence of numbers, emulates seq(), like 350:::0.1:::2500
-  # if used the "." placeholder
+  # if used the "..." placeholder
   if (any(all_vars == "...")) {
     remainder <- setdiff(names(object), c(all_vars, 'id')) # setting id as a reserved name for id columns
-    formula <- lapply(formula, replace.remainder)
-  } 
-  
-  res <- list(id=NULL, data=NULL, nir=NULL)
-  if (n_elements == 1) { # case spectra(df) <- ~ .
-    res[['nir']] <- formula[[1]]
     
+    replace.remainder <- function(x) {
+      if (any(x == "...")) 
+	c(x[x != "..."], remainder) 
+      else x
+    }
+    formula <- lapply(formula, replace.remainder)
+  }  
+
+  if (n_elements == 1) { # case spectra(df) <- ~ ...
+    cols_id <- NULL
+    cols_data <- NULL
+    cols_nir <- formula[[1]]
   }
   else if (n_elements == 2) {# case spectra(df) <- id ~ .      
-    res[['id']] <- formula[[1]]
-    res[['nir']] <- formula[[2]]
+    cols_id <- formula[[1]]
+    cols_data <- NULL
+    cols_nir <- formula[[2]]
   }
   else if (n_elements == 3) {# spectra(df) <- id ~ attr1 + attr2 ~ .
-#     # if id is not present in the colnames
-#     if ((formula[[1]] == 'id') & !(formula[[1]] %in% names(object)))
-    res[['id']] <- formula[[1]]
-    res[['data']] <- formula[[2]]
-    res[['nir']] <- formula[[3]]
+    cols_id <- formula[[1]]
+    cols_data <- formula[[2]]
+    cols_nir <- formula[[3]]
   }
   else
     stop('wrong formula.')
-  res
+
+  list(id=cols_id, data=cols_data, nir=cols_nir)
 }
 
 ## setting the spectra of a Spectra* object
