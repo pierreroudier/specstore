@@ -76,16 +76,16 @@ print.summary.Spectra = function(x, ...) {
       cat(min(x[["wl"]], na.rm=TRUE), " to ", max(x[["wl"]], na.rm=TRUE)," ", x[["units"]], "\n", sep="")
       SpectralResolution <- get_resolution(x[["wl"]])
       if (length(SpectralResolution) > 1) 
-  cat("Spectral resolution: irregular wavelength spacing\n")
+	cat("Spectral resolution: irregular wavelength spacing\n")
       else {
-  if (length(SpectralResolution) == 0)
-    cat("Spectral resolution: NA\n")
-  else 
-    cat("Spectral resolution: ", SpectralResolution , " ",  x[["units"]], "\n", sep="")
+	if (length(SpectralResolution) == 0)
+	  cat("Spectral resolution: NA\n")
+	else 
+	  cat("Spectral resolution: ", SpectralResolution , " ",  x[["units"]], "\n", sep="")
       }
       if (!is.null(x$data)) {
-    cat("Data attributes:\n")
-    print(x$data)
+	cat("Data attributes:\n")
+	print(x$data)
       }
     }
     invisible(x)
