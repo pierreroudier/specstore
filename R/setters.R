@@ -96,7 +96,7 @@ setReplaceMethod("wl", "data.frame",
   # ... : all the columns that havent been used in the formula
   # : : sequence of integers, like 350:2500
   # :n: : sequence of numbers, emulates seq(x,y, by=n), like 350:n:2500
-
+  
   # if used the ":"  placeholder
   if (str_detect(formula[[length(formula)]], ":")) { # allowed only on the right hand element of the formula
     nir_seq <- aaply(unlist(str_split(formula[[length(formula)]], "[:]")), 1, as.numeric)
@@ -114,7 +114,7 @@ setReplaceMethod("wl", "data.frame",
     # finding the corresponding col names
     cols_nir  <- names(object)[.findSpectraCols(data=object, wl=nir_wl)]
     # replacing the placeholder by the actual col names
-    formula[[3]] <- cols_nir
+    formula[[length(formula)]] <- cols_nir
   }
 
   all_vars <- unlist(formula)
