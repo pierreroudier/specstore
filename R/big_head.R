@@ -1,10 +1,3 @@
-## Function that extends the head function
-## to big data.frame objects.
-##
-## Not only big.head() gives a limited set of rows,
-## but it laso gives a limited number of columns.
-##
-
 #' Return the First or Last Part of an Object
 #' 
 #' Returns the first or last rows of a data frame like head() and tail(),
