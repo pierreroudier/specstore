@@ -43,19 +43,13 @@ setReplaceMethod("wl", "data.frame",
     if (is(value, 'numeric')) {
       # finding which cols contrain the spectra
       ind_nir <- .findSpectraCols(data=object, wl=value, .progress='text')
-      nir <- object[, ind_nir]
+      nir <- object[, ind_nir, drop=FALSE]
       
       res <- Spectra(wl=as.numeric(value), nir=as.matrix(nir))
       
       # If there are some columns left, we use them to initiate a SpectraDataFrame object
       if (ncol(nir) < ncol(object)) {
-	data <- object[, -ind_nir]
-	# if there is only one col left,
-	# we have to make sure to pass it as a data.frame
-	if (is(data, 'numeric')) {
-	  data <- data.frame(data)
-	  names(data) <- names(object)[setdiff(1:ncol(object), ind_nir)]
-	}
+	data <- object[, -ind_nir, drop=FALSE]
 	data(res) <- data
       }
     }
@@ -185,8 +179,8 @@ setReplaceMethod("spectra", "data.frame",
       cat(min(wl(res), na.rm=TRUE), " to ", max(wl(res), na.rm=TRUE)," ", get_units(res), "\n", sep="")
       cat("Spectral resolution: ", get_resolution(wl(res)) , " ",  get_units(res), "\n", sep="")
       
-      if (length(ind.vars$data != 0)) 
-	res <- SpectraDataFrame(res, data=object[, ind.vars$data])
+      if (length(ind.vars$data != 0))
+	res <- SpectraDataFrame(res, data=object[, ind.vars$data, drop=FALSE])
     }
     
     # if given a numeric vector (interpreted as the index of the cols)
@@ -198,7 +192,7 @@ setReplaceMethod("spectra", "data.frame",
 
       # if there's some cols left, we create a SpectraDataFrame
       if (length(value) < ncol(object)) {
-	data <- object[, setdiff(1:ncol(object), value)]
+	data <- object[, setdiff(1:ncol(object), value), drop=FALSE]
 	res <- SpectraDataFrame(res, data=data)
       }
     }
@@ -214,7 +208,7 @@ setReplaceMethod("spectra", "data.frame",
 
       # if there's some cols left, we create a SpectraDataFrame
       if (length(value) < ncol(object)) {
-	data <- object[, setdiff(1:ncol(object), ind.nir)]
+	data <- object[, setdiff(1:ncol(object), ind.nir), drop=FALSE]
 	res <- SpectraDataFrame(res, data=data)
       }
     }
@@ -275,15 +269,3 @@ setReplaceMethod("id", "SpectraDataFrame",
     object
   }
 )
-
-##
-
-# df <-read.csv('path/to/my/data.csv')
-# wl(df) <- 350:2500
-# id(df) <- ~ id
-# data(df) <- someDataFrame (for a Spectra object)
-#
-# ...
-#
-# coordinates(df) <- ~x+y
-# proj4string(df) <- ...
