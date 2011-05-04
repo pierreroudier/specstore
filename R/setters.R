@@ -16,13 +16,13 @@
     # more tricky - looking for X350, etc:
     require(plyr)
     require(stringr)
-#     ind_col_spectra <- aaply(names(data), 1, .fun=function(x) any(str_detect(x, as.character(wl))), ...)
+
     nm <- .guessWl(names(data))
     ind_col_spectra <- which(nm %in% wl)
   }
   if (length(ind_col_spectra) == 0)
     stop('No columns found.')
-#   which(ind_col_spectra)
+
   ind_col_spectra
 }
 
@@ -59,20 +59,21 @@ setReplaceMethod("wl", "data.frame",
   }
 )
 
-## Parsing of the formula interface to spectra<-
-##
-## spectra(df) <- id ~ attr1 + attr2 ~ ...
-## spectra(df) <- id ~ ... What if id col do not exist (?)
-## spectra(df) <- ~ ...
-##
-## Inspired from Hadley Wickham's parse_formula
-## https://github.com/hadley/reshape/blob/master/R/formula.r
-##
-## @param formula a formula fot the spectra()<- setter
-## @param object a data.frame
-## @value returns a list of column names for the id slot, 
-## the data slot and the nir slot of teh Spectra* object
-##
+#' Parsing of the formula interface to spectra<-
+#'
+#' spectra(df) <- id ~ attr1 + attr2 ~ ...
+#' spectra(df) <- id ~ ... ~ 350:2500
+#' spectra(df) <- id ~ ... 
+#' spectra(df) <- ~ ...
+#'
+#' Inspired from Hadley Wickham's parse_formula
+#' https://github.com/hadley/reshape/blob/master/R/formula.r
+#'
+#' @param formula a formula fot the spectra()<- setter
+#' @param object a data.frame
+#' @value returns a list of column names for the id slot, 
+#' the data slot and the nir slot of teh Spectra* object
+#'
 .parse_formula <- function(formula, object){
   require(stringr)
 
