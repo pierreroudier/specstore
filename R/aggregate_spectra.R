@@ -1,10 +1,15 @@
-aggregate_spectra <- function(obj,fun=mean, ...){
-  
+#' Aggregates the spectral information of a Spectra object using 
+#' an aggregation function chosen by the user.if some data is also
+#' present, it is aggregated using the same function.
+#'
+#' @param obj an object inheriting from class Spectra
+#' @param fun an aggregation function
+#' @param ... expressions evaluated in the context of \code{fun}
+#'
+aggregate_spectra <- function(obj, fun = mean, ...){
   require(plyr)
-  
-  res <- obj
 
-  # making up an id from the aggregation function
+  # making up an id name from the aggregation function
   id <- as.character(substitute(fun))[1]
   
   # applying the function to the spectra
