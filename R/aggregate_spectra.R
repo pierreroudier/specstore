@@ -5,6 +5,7 @@
 #' @param obj an object inheriting from class Spectra
 #' @param fun an aggregation function
 #' @param ... expressions evaluated in the context of \code{fun}
+#' @return An object of the same class as \code{obj}
 #'
 aggregate_spectra <- function(obj, fun = mean, ...){
   require(plyr)
