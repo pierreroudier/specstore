@@ -59,6 +59,43 @@ setReplaceMethod("wl", "data.frame",
   }
 )
 
+#` Replacing the wavelength range of a Spectra object. Handle with care!
+#`
+setReplaceMethod("wl", "Spectra",
+  function(object, value) {
+
+    # value as to be a numeric vector
+    if (is(value, 'numeric')) {
+
+      # if the same number of wl is provided, we simply change the content of
+      # the @wl slot of the object
+      if (length(value) == length(object)){
+	res <- object
+	res@wl <- value
+      }
+      
+      # if the number of wl provided is smaller than the number of wavelengths
+      # in the @wl slot, it is interpreted as a reduction of the object to a certain
+      # set of wavelengths
+      else if (length(value) < length(object)) {
+	ind.wl <- which(wl(d) %in% value) 
+	nir <- spectra(object)[, ind.wl, drop=FALSE]
+	res <- Spectra(id = id(object), wl = value, nir = nir, units = get_units(object))
+	if ("data" %in% slotNames(object))
+	  res <- SpectraDataFrame(res, data = get_data(object))
+      }
+      
+      else 
+	stop('More wavelengths that the object originally has.')
+    }
+    else
+      stop('Please provide wavelengths as a numeric vector.')
+
+    res
+  }
+)
+
+
 #' Parsing of the formula interface to spectra<-
 #'
 #' spectra(df) <- id ~ attr1 + attr2 ~ ...
