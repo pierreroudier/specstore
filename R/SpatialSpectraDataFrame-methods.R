@@ -1,6 +1,6 @@
 "SpatialSpectraDataFrame" <- function(coords, nir, data, 
   coords.nrs = numeric(0), proj4string = CRS(as.character(NA)), match.ID = TRUE, bbox=NULL,
-  wl=numeric(), id=as.character(NA), units=as.character(NA)) {
+  wl=numeric(), id=data.frame(id=NA), units=as.character(NA)) {
   
   if (!is(coords, "SpatialPoints"))
     coords = SpatialPoints(coords, proj4string = proj4string, bbox=bbox)
@@ -107,6 +107,6 @@ subset.SpatialSpectraDataFrame <- function(x, subset, select, drop = FALSE, ...)
   # remove unused factors
   df_sub <- droplevels(df_sub)
   id_selected <- which(rownames(df) %in% rownames(df_sub))
-  x <- SpatialSpectraDataFrame(SpPts, wl=wl(x), nir=spectra(x)[id_selected,], id=id(x)[id_selected], units=get_units(x), data=df_sub)
+  x <- SpatialSpectraDataFrame(SpPts, wl=wl(x), nir=spectra(x)[id_selected, , drop=FALSE], id=id(x)[id_selected, 1, drop = FALSE], units=get_units(x), data=df_sub)
   x
 }

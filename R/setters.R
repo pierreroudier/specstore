@@ -204,33 +204,33 @@ setReplaceMethod("spectra", "data.frame",
       if (length(ind.vars$nir) == 0) 
 	ind.vars$nir <- .findSpectraCols(object, .parse_formula(value, object)$nir)
       
-      nir <- object[, ind.vars$nir]
+      nir <- object[, ind.vars$nir, drop = FALSE]
       if (length(ind.vars$id) == 0)
 	ids <- as.character(NA)
       else
-	ids <- object[, ind.vars$id]
+	ids <- object[, ind.vars$id, drop = FALSE]
       
       wl <- .guessWl(names(nir))
       res <- Spectra(id=ids, wl=wl, nir=nir)
       
       cat("Wavelength range: ")
-      cat(min(wl(res), na.rm=TRUE), " to ", max(wl(res), na.rm=TRUE)," ", get_units(res), "\n", sep="")
+      cat(min(wl(res), na.rm=TRUE), " to ", max(wl(res), na.rm = TRUE)," ", get_units(res), "\n", sep="")
       cat("Spectral resolution: ", get_resolution(wl(res)) , " ",  get_units(res), "\n", sep="")
       
       if (length(ind.vars$data != 0))
-	res <- SpectraDataFrame(res, data=object[, ind.vars$data, drop=FALSE])
+	res <- SpectraDataFrame(res, data=object[, ind.vars$data, drop = FALSE])
     }
     
     # if given a numeric vector (interpreted as the index of the cols)
     # eg spectra(df) <- 11:2161
     else if (is(value, 'numeric')) {
-      nir <- object[, value]
+      nir <- object[, value, drop = FALSE]
       wl <- .guessWl(names(nir))
       res <- Spectra(wl=wl, nir=nir)
 
       # if there's some cols left, we create a SpectraDataFrame
       if (length(value) < ncol(object)) {
-	data <- object[, setdiff(1:ncol(object), value), drop=FALSE]
+	data <- object[, setdiff(1:ncol(object), value), drop = FALSE]
 	res <- SpectraDataFrame(res, data=data)
       }
     }
@@ -239,14 +239,14 @@ setReplaceMethod("spectra", "data.frame",
     # eg spectra(df) <- c('X450', 'X451', 'X452')
     else if (is(value, 'character')) {
       ind.nir <- which(names(object) %in% value)
-      nir <- object[, ind.nir]
+      nir <- object[, ind.nir, drop = FALSE]
       
       wl <- .guessWl(names(nir))
       res <- Spectra(wl=wl, nir=nir)
 
       # if there's some cols left, we create a SpectraDataFrame
       if (length(value) < ncol(object)) {
-	data <- object[, setdiff(1:ncol(object), ind.nir), drop=FALSE]
+	data <- object[, setdiff(1:ncol(object), ind.nir), drop = FALSE]
 	res <- SpectraDataFrame(res, data=data)
       }
     }

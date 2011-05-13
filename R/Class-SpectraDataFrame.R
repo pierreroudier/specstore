@@ -7,7 +7,7 @@ setClass(
   prototype=prototype(
     wl=numeric(),
     nir=matrix(),
-    id=as.character(NA),
+    id=data.frame(NA),
     units=as.character(NA),
     data=data.frame()
   ),

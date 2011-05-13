@@ -5,10 +5,13 @@
   # for clarity (only one type to manage)
   if (is(wl, "integer"))
     wl <- as.numeric(wl)
+
   if (is(nir, 'data.frame'))
     nir <- as.matrix(nir)
-  if (!is(id, "character"))
-    id <- as.character(id)
+
+  if (!is(id, "data.frame"))
+    id <- data.frame(id = id)
+
   # If no id is given
   if (all(is.na(id))) {
     # If the object is void
@@ -18,29 +21,37 @@
     else
       id <- as.character(seq(1, nrow(nir)))
   } 
+
+  # if ids are actually given by the user
   else {
     # Test of inconsistent ids when id is specified by the user
-    if (is.null(nrow(nir))) { # if theres only one spectra
-      if (length(id) != 1)
-        stop("number of individuals and number of rows in the spectra matrix don't match")
+
+    # if theres only one spectra
+    if (is.null(nrow(nir))) { 
+      if (nrow(id) != 1)
+	stop("number of individuals and number of rows in the spectra matrix don't match")
       if ((length(wl) > 1) & (length(nir) != length(wl)))
         stop("number of columns in the spectra matrix and number of observed wavelengths don't match")
       nir <- matrix(nir, nrow=1)
-    } 
+    }
+
+    # if theres more than one specta
     else {
-      if (nrow(nir) != length(id))
+      if (nrow(nir) != nrow(id))
         stop("number of individuals and number of rows in the spectra matrix don't match")
       if ((length(wl) > 1) & (ncol(nir) != length(wl)))
         stop("number of columns in the spectra matrix and number of observed wavelengths don't match")
       colnames(nir) <- wl
-      rownames(nir) <- id
+      rownames(nir) <- as.vector(do.call('rbind', id))
     }
   }
+
+  # consistency nimber of wl/number of cols in the NIR matrix
   if ((length(wl) > 1) & (ncol(nir) != length(wl)))
     stop("number of columns in the spectra matrix and number of observed wavelengths don't match")
-  rownames(nir) <- id
+  rownames(nir) <- as.vector(do.call('rbind', id))
   colnames(nir) <- wl
-  new("Spectra", wl=wl, nir=nir, id=id, units=units)
+  new("Spectra", wl = wl, nir = nir, id = id, units = units)
 }
 
 ## SUMMARY
@@ -70,8 +81,8 @@ setMethod("summary", "summary.Spectra", summary.Spectra)
 
 print.summary.Spectra = function(x, ...) {
     cat(paste("Object of class ", x[["class"]], "\n", sep = ""))
-    cat("Set of ", length(x[['id']])," spectra\n", sep = "")
-    if (length(x[['id']]) > 0){
+    cat("Set of ", nrow(x[['id']])," spectra\n", sep = "")
+    if (nrow(x[['id']]) > 0){
       cat("Wavelength range: ")
       cat(min(x[["wl"]], na.rm=TRUE), " to ", max(x[["wl"]], na.rm=TRUE)," ", x[["units"]], "\n", sep="")
       SpectralResolution <- get_resolution(x[["wl"]])
@@ -100,8 +111,8 @@ setMethod(
   signature='Spectra',
   definition=function(object){
     cat(paste("Object of class ", class(object), "\n", sep = ""))
-    cat("Set of ", length(object@id)," spectra\n", sep='')
-    if (length(object@id) > 0){
+    cat("Set of ", nrow(object@id)," spectra\n", sep='')
+    if (nrow(object@id) > 0){
       cat("Wavelength range: ", min(object@wl, na.rm=TRUE),"-",max(object@wl, na.rm=TRUE)," ", object@units, "\n", sep="")
       SpectralResolution <- get_resolution(object)
       if (length(SpectralResolution) > 1) 
@@ -182,7 +193,7 @@ setMethod(f='length', signature='Spectra',
 # overload nrow() to give us the number of samples
 setMethod(f='nrow', signature='Spectra',
 definition=function(x)
-    length(id(x))
+    nrow(id(x))
 )
 
 ## Returns spectral resolution of the wavelengths
@@ -236,10 +247,10 @@ setMethod("[", c("Spectra", "ANY", "missing"),
       } 
       else
         df <- x@data[i,]
-      res <- SpectraDataFrame(wl=x@wl, nir=x@nir[i,], id=x@id[i], data=df)
+      res <- SpectraDataFrame(wl=x@wl, nir=x@nir[i,], id=x@id[i, 1, drop = FALSE], data=df)
     }
     else 
-      res <- Spectra(wl=x@wl, nir=x@nir[i,], id=x@id[i])
+      res <- Spectra(wl=x@wl, nir=x@nir[i,], id=x@id[i, 1, drop = FALSE])
     res  
   }
 )
@@ -265,7 +276,7 @@ setReplaceMethod("data", "Spectra",
   if (all(id %in% obj@id)){
     id.lines <- which(obj@id %in% id)
     
-    if (nrow(value) != length(id))
+    if (nrow(value) != nrow(id))
       stop("the matrix you try to substitute does not have suitable dimensions")
     if (ncol(value) != length(obj@wl))
       stop("inconsistent wavelengths")
@@ -298,7 +309,7 @@ if (!isGeneric("add"))
     stop('You can not add objects with different wavelength ranges')
 
   if (!any(x@id %in% y@id)) 
-    tmp$id <- c(x@id, y@id)
+    tmp$id <- rbind(x@id, y@id)
   else 
     stop('You can not add objects with overlapping IDs')
 

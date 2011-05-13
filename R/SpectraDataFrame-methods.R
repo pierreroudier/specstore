@@ -29,40 +29,43 @@
       wl <- as.numeric(wl)
     if (is(nir, 'data.frame'))
       nir <- as.matrix(nir)
-    if (!is(id, "character"))
-      id <- as.character(id)
+#     if (!is(id, "character"))
+#       id <- as.character(id)
+    if (!is(id, "data.frame"))
+      id <- data.frame(id = id)
+
     # If no id is given
     if (all(is.na(id))) {
       # If the object is void
       if (length(nir) == 1) 
-        id <- as.character(NULL)
+        id <- data.frame(NULL)
       # if a matrix is here
       else 
-        id <- as.character(seq(1, nrow(nir)))
+        id <- data.frame(id = as.character(seq(1, nrow(nir))))
     } 
     else {
       # Test of inconsistent ids when id is specified by the user
       if (is.null(nrow(nir))) { # if theres only one spectra
-        if (length(id) != 1)
+        if (nrow(id) != 1)
           stop("number of individuals and number of rows in the spectra matrix don't match")
         if ((length(wl) > 1) & (length(nir) != length(wl)))
           stop("number of columns in the spectra matrix and number of observed wavelengths don't match")
         nir <- matrix(nir, nrow=1)
       } 
       else {
-        if (nrow(nir) != length(id))
+        if (nrow(nir) != nrow(id))
           stop("number of individuals and number of rows in the spectra matrix don't match")
         if ((length(wl) > 1) & (ncol(nir) != length(wl)))
           stop("number of columns in the spectra matrix and number of observed wavelengths don't match")
         colnames(nir) <- wl
-        rownames(nir) <- id
+        rownames(nir) <- as.vector(do.call('rbind', id))
       }
     }
   }
   if (is(data, "numeric") | is(data, "integer"))
     data <- as.data.frame(data)
   
-  rownames(data) <- id
+  rownames(data) <- as.vector(do.call('rbind', id))
 
   new("SpectraDataFrame", wl=wl, nir=nir, id=id, units=units, data=data)
 }
@@ -74,7 +77,7 @@ as.data.frame.SpectraDataFrame = function(x, ...)  {
   data <- get_data(x)
   id <- id(x)
   df <- data.frame(id, data, df)
-  names(df) <- c('id', names(data), wl(x))
+  names(df) <- c(names(id), names(data), wl(x))
   df
 }
 
@@ -152,7 +155,7 @@ subset.SpectraDataFrame <- function(x, subset, select, drop = FALSE, ...) {
   # remove unused factors
   df_sub <- droplevels(df_sub)
   id_selected <- which(rownames(df) %in% rownames(df_sub))
-  x <- SpectraDataFrame(wl=wl(x), nir=spectra(x)[id_selected,], id=id(x)[id_selected], units=get_units(x), data=df_sub)
+  x <- SpectraDataFrame(wl=wl(x), nir=spectra(x)[id_selected, , drop = FALSE], id=id(x)[id_selected, 1, drop = FALSE], units=get_units(x), data=df_sub)
   x
 }
 
@@ -169,9 +172,9 @@ if (!isGeneric("separate"))
 separate.SpectraDataFrame <- function(obj, calibration){
   if (calibration < 1)
     calibration <- floor(calibration*length(obj))
-  calib <- sample(x=seq_len(length(obj)), size=calibration, replace=FALSE)
+  calib <- sample(x=seq_len(length(obj)), size=calibration, replace = FALSE)
   valid <- setdiff(seq_len(length(obj)), calib)
-  list(calibration=obj[calib,], validation=obj[valid,])
+  list(calibration=obj[calib, , drop = FALSE], validation=obj[valid, , drop = FALSE])
 }
 
 setMethod("separate", "SpectraDataFrame", separate.SpectraDataFrame)
