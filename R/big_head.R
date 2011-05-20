@@ -8,6 +8,10 @@
 #' @param n a single, positive integer, number of rows for the object to return 
 #' @param s a single, positive integer
 #' @param f a single, positive integer
+#' @return An object (usually) like ‘x’ but generally smaller.
+#' @author Pierre Roudier \url{pierre.roudier@@gmail.com}
+#' @aliases big.head big.tail
+#' @export
 #' @examples 
 #' big.head(mtcars)
 #' big.tail(mtcars)

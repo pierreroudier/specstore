@@ -37,9 +37,22 @@ rnv <- function(x, r){
   res
 }
 
-## Continuum removal
-##
-remove_continuum <- function(obj){
+#' Continuum removal
+#'
+#' Operates a continuum removal on the spectra in the collection.
+#' This operation is commonly done  to normalize reflectance spectra 
+#' and allow comparison of individual absorption features from a 
+#' common baseline. The removal is based on the upper convex hull of
+#' the spectra.
+#'
+#' @param obj an object inheriting from Spectra
+#' @return an object of same class with the continuum removed from its spectra.
+#' @references R.N. Clark and T.L. Roush (1984).Reflectance spectroscopy: 
+#' Quantitative analysis techniques for remote sensing applications, 
+#' Journal of Geophysical Research 89 (B7), pp. 6329–6340.
+#' @export
+#' @author Pierre Roudier \url{pierre.roudier@@gmail.com}
+continuum_removal <- function(obj){
 
 # # using plyr
 #   require(plyr)
