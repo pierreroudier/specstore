@@ -1,3 +1,6 @@
+#' @include SpectraDataFrame-methods.R
+roxygen()
+
 "SpatialSpectraDataFrame" <- function(coords, nir, data, 
   coords.nrs = numeric(0), proj4string = CRS(as.character(NA)), match.ID = TRUE, bbox=NULL,
   wl=numeric(), id=data.frame(id=NA), units=as.character(NA)) {

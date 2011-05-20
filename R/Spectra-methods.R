@@ -1,5 +1,12 @@
-## INITIALIZER
-
+#' Constructor for the Spectra class
+#'
+#' @param wl a numeric vector giving the wavelengths at with the spectra have been measured
+#' @param nir a \code{matrix} or a \code{data.frame} object giving the spectra values for each sample
+#' @param id a vector giving the unique id of each sample in the collection
+#' @param units a character giving the unit in which the wavelengths values are expressed
+#' @return a new Spectra object
+#' @export
+#' @author Pierre Roudier \url{pierre.roudier@@gmail.com}
 "Spectra" <- function(wl=numeric(), nir=matrix(), id=as.character(NA), units="nm") {
   # if the wl are given as an integer vector they are translated into a numeric vector
   # for clarity (only one type to manage)
@@ -60,6 +67,11 @@ if (!isGeneric("summary"))
   setGeneric("summary", function(object, ...)
     standardGeneric("summary"))
 
+#' @param object an object inheriting from \code{Spectra} 
+#' @param ... Ignored
+#' @method summary Spectra
+#' @rdname Spectra
+#' @author Pierre Roudier \url{pierre.roudier@@gmail.com}
 summary.Spectra <- function (object, ...){
     obj = list()
     obj[["class"]] = class(object)
@@ -79,6 +91,10 @@ summary.Spectra <- function (object, ...){
 
 setMethod("summary", "summary.Spectra", summary.Spectra)
 
+#' @param object a summary for an object inheriting from \code{Spectra}
+#' @param ... Ignored
+#' @method print summary.Spectra
+#' @author Pierre Roudier \url{pierre.roudier@@gmail.com}
 print.summary.Spectra = function(x, ...) {
     cat(paste("Object of class ", x[["class"]], "\n", sep = ""))
     cat("Set of ", nrow(x[['id']])," spectra\n", sep = "")
@@ -106,6 +122,10 @@ setMethod("print", "summary.Spectra", print.summary.Spectra)
 
 ## PRINT
 
+#' @param object an object inheriting from \code{Spectra} 
+#' @method show Spectra
+#' @rdname Spectra-methods
+#' @author Pierre Roudier \url{pierre.roudier@@gmail.com}
 setMethod(
   f='show', 
   signature='Spectra',
@@ -133,7 +153,11 @@ setMethod(
 
 ## coercition methods
 
-as.data.frame.Spectra = function(x, ...)  {
+#' @param x an object inheriting from \code{Spectra} 
+#' @param ... Ignored
+#' @return a \code{data.frame} object
+#' @author Pierre Roudier \url{pierre.roudier@@gmail.com}
+as.data.frame.Spectra <- function(x, ...)  {
   df <- as.data.frame(spectra(x))
   names(df) <- wl(x)
   df
@@ -149,6 +173,13 @@ if (!isGeneric("spectra"))
   setGeneric("spectra", function(object, ...)
     standardGeneric("spectra"))
 
+#' Returns the matrix of the spectra in the collection
+#'
+#' @param object an object inheriting from \code{Spectra} 
+#' @return a \code{matrix} object
+#'
+#' @export
+#' @author Pierre Roudier \url{pierre.roudier@@gmail.com}
 setMethod("spectra", "Spectra", 
   function(object)
     object@nir
@@ -159,6 +190,13 @@ if (!isGeneric("wl"))
   setGeneric("wl", function(object, ...)
     standardGeneric("wl"))
 
+#' Returns the wavelengths at which the spectra have been recorded
+#'
+#' @param object an object inheriting from \code{Spectra} 
+#' @return a \code{numeric} object
+#'
+#' @export
+#' @author Pierre Roudier \url{pierre.roudier@@gmail.com}
 setMethod("wl", "Spectra", 
   function(object)
     object@wl
@@ -169,6 +207,13 @@ if (!isGeneric("id"))
   setGeneric("id", function(object, ...)
     standardGeneric("id"))
 
+#' Returns the ids of each spectra in the collection
+#'
+#' @param object an object inheriting from \code{Spectra} 
+#' @return a \code{character} object
+#'
+#' @export
+#' @author Pierre Roudier \url{pierre.roudier@@gmail.com}
 setMethod("id", "Spectra", 
   function(object)
     object@id
@@ -179,18 +224,37 @@ if (!isGeneric("get_units"))
   setGeneric("get_units", function(object, ...)
     standardGeneric("get_units"))
 
+#' Returns the unit in which the wavelengths values are expressed
+#'
+#' @param object an object inheriting from \code{Spectra} 
+#' @return a \code{character} 
+#'
+#' @export 
+#' @author Pierre Roudier \url{pierre.roudier@@gmail.com}
 setMethod("get_units", "Spectra", 
   function(object)
     object@units
 )
     
-# overload length() to give us the number of wl
+#' Returns the number of wavelengths in the object
+#'
+#' @param object an object inheriting from \code{Spectra} 
+#' @return a vector
+#'
+#' @export 
+#' @author Pierre Roudier \url{pierre.roudier@@gmail.com}
 setMethod(f='length', signature='Spectra',
   definition=function(x)
     ncol(x@nir)
 )
 
-# overload nrow() to give us the number of samples
+#' Returns the number of samples in the object
+#'
+#' @param object an object inheriting from \code{Spectra} 
+#' @return a vector
+#'
+#' @export 
+#' @author Pierre Roudier \url{pierre.roudier@@gmail.com}
 setMethod(f='nrow', signature='Spectra',
 definition=function(x)
     nrow(id(x))
@@ -202,10 +266,26 @@ if (!isGeneric("get_resolution"))
   setGeneric("get_resolution", function(object, ...)
     standardGeneric("get_resolution"))
 
-get_resolution.numeric <- function(object, digits=10, ...){
-  unique(round(diff(object), digits=digits)) # round - otherwise diff() picks some unsignificant values
+#' Returns the spectral resolution of an object
+#'
+#' @param object a vector
+#' @param digits the number of significant digits 
+#' @return a vector
+#'
+#' @method get_resolution numeric 
+#' @author Pierre Roudier \url{pierre.roudier@@gmail.com}
+get_resolution.numeric <- function(object, digits = 10, ...){
+  unique(round(diff(object), digits = digits)) # round - otherwise diff() picks some unsignificant values
 }
 
+#' Returns the spectral resolution of an object
+#'
+#' @param object an object inheriting from \code{Spectra} 
+#' @param digits the number of significant digits 
+#' @return a vector
+#'
+#' @method get_resolution Spectra
+#' @author Pierre Roudier \url{pierre.roudier@@gmail.com}
 get_resolution.Spectra <- function(object, digits=10, ...){
   x <- wl(object)
   unique( round( diff(x), digits=digits) )
@@ -217,6 +297,14 @@ setMethod("get_resolution", "Spectra", get_resolution.Spectra)
 
 ## overloads
 
+#' extract parts of Spectra objects
+#'
+#' @name [
+#' @aliases [, Spectra-method
+#' @docType methods
+#' @rdname extract-methods
+#'
+#' @author Pierre Roudier \url{pierre.roudier@@gmail.com}
 setMethod("[", c("Spectra", "ANY", "missing"), 
   function(x, i, j, ... ) {
     missing.i = missing(i)
@@ -261,10 +349,11 @@ if (!isGeneric('data<-'))
   setGeneric('data<-', function(object, value) 
     standardGeneric('data<-'))
 
+#' 
 setReplaceMethod("data", "Spectra",
   function(object, value) {
     if (!inherits(value, "data.frame")) 
-      stop('invalid initialization for SoilProfile object')
+      stop('invalid initialization for SpectraDataFrame object')
     SpectraDataFrame(object, data=value)
   }
 )
@@ -295,6 +384,9 @@ if (!isGeneric("add"))
   setGeneric("add", function(x, y, ...)
     standardGeneric("add"))
 
+#' Adds two Spectra objects together
+#'
+#' @author Pierre Roudier \url{pierre.roudier@@gmail.com}
 .add.Spectra <- function(x, y){
   tmp <- list()
 
@@ -364,8 +456,23 @@ transform.Spectra <- function (obj, condition, ...){
   Spectra(wl=wl(obj), nir=nir, id=id(obj), units=get_units(obj))
 }
 
-## Mutate the SpectraDataFrame object	
-
+#`  Mutate a Spectra object by adding new or replacing existing columns.
+#`
+#` This function is a simple port of the \code{\link{mutate}} function in the
+#' plyr package to the Spectra objects, which it wraps.
+#'
+#' This function is very similar to \code{\link{transform}} but it executes
+#' the transformations iteratively so that later transformations can use the
+#' columns created by earlier transformations. Like transform, unnamed
+#' components are silently dropped.
+#'
+#' Mutate seems to be considerably faster than transform for large data
+#' frames.
+#'
+#' @param obj an object inheriting from the Spectra class
+#' @param ... named parameters giving definitions of new columns
+#' @seealso \code{\link{mutate}}
+#' @export
 mutate.Spectra <- function (obj, ...){
   require(reshape2)
   require(stringr)
