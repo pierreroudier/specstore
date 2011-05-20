@@ -20,9 +20,17 @@ roxygen()
 #' @import sp
 setClass(
   Class='SpatialSpectraDataFrame',
+  contains = c("SpatialPointsDataFrame", "SpectraDataFrame"),
   representation=representation(
-    'SpatialPointsDataFrame',
-    'SpectraDataFrame'
+    bbox = "matrix", 
+    proj4string = "CRS", 
+    coords = "matrix", 
+    coords.nrs = "numeric",
+    wl='numeric',
+    nir='matrix',
+    id='data.frame',
+    units="character",
+    data = "data.frame"
   ),
   prototype=prototype(
     bbox = matrix(NA), 

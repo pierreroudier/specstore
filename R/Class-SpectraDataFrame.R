@@ -15,7 +15,10 @@ roxygen()
 setClass(
   Class='SpectraDataFrame',
   representation=representation(
-    'Spectra',
+    wl='numeric',
+    nir='matrix',
+    id='data.frame',
+    units="character",
     data='data.frame'
   ),
   prototype=prototype(
