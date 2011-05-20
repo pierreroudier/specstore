@@ -1,4 +1,4 @@
-#' @include 
+#' @include SpectraDataFrame-methods.R
 roxygen()
 
 #' Aggregates the spectral information of a Spectra object using 
