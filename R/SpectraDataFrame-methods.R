@@ -1,3 +1,6 @@
+#' @include Spectra-methods.R
+roxygen()
+
 "SpectraDataFrame" <- function(..., wl=numeric(), nir=matrix(), id=as.character(NA), units="nm", data=data.frame()) {
 
   dotargs <- list(...)
@@ -15,7 +18,7 @@
     # if theres only one Spectra object
     else
       s <- dotargs[[1]]
-    
+
     wl <- wl(s)
     nir <- spectra(s)
     id <- id(s)

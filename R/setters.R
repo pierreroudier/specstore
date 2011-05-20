@@ -1,9 +1,31 @@
-.guessWl <- function(string){
+#' Tries to guess the wavelengths from a stringr
+#' 
+#' This simple wrapper around str_extract simply tries to pull out
+#' digits contained in a chain of characters.
+#' @param x a character or a vector of characters
+#' @return ta character or a vector of characters containing he digits 
+#' that have been extracted from x.
+#' @author Pierre Roudier \email{pierre.roudier@@gmail.com}
+#' @import plyr stringr
+.guessWl <- function(x){
   # simply returns the wavelengths from a string
-  as.numeric(laply(.data=str_extract_all(string, "\\d"), .fun=paste, collapse=""))
+  as.numeric(laply(.data=str_extract_all(x, "\\d"), .fun=paste, collapse=""))
 }
 
-# Tries to find the columns of the spectra from the spectral range
+#' Tries to find the columns of the spectra from the spectral range
+#'
+#' This function tries to guess the location of the columns corresponding 
+#' to each wavelength given by a numeric vector, based on the column
+#' names. This is mainly a workaround the fact that R is usually putting
+#' a "X" in front of column names that are numbers.
+#'
+#' @param data a \code{data.frame} object
+#' @param wl a numeric or character vector containing the values of the 
+#' wavelengths to look for.
+#' @return the index in data of the column corrresponding to the wavelengths
+#' given in wl.
+#' @author Pierre Roudier \email{pierre.roudier@@gmail.com}
+#' @import plyr stringr
 .findSpectraCols <- function(data, wl, ...){
   
   # for each colname, we check if a part of it is in the spectral range
@@ -14,9 +36,6 @@
   # try to extract wl from the colnames
   if (length(ind_col_spectra) == 0) {
     # more tricky - looking for X350, etc:
-    require(plyr)
-    require(stringr)
-
     nm <- .guessWl(names(data))
     ind_col_spectra <- which(nm %in% wl)
   }
@@ -26,12 +45,8 @@
   ind_col_spectra
 }
 
-## setter for Spectra objects
+## setters for Spectra objects
 
-# the idea here is to have a quick setter - like coordinates(...) in sp.
-#
-# e.g. wl(mydf) <- id ~ 350:2500
-#
 if (!isGeneric('wl<-'))
   setGeneric('wl<-', function(object, value) 
     standardGeneric('wl<-'))
@@ -108,12 +123,11 @@ setReplaceMethod("wl", "Spectra",
 #'
 #' @param formula a formula fot the spectra()<- setter
 #' @param object a data.frame
-#' @value returns a list of column names for the id slot, 
+#' @return returns a list of column names for the id slot, 
 #' the data slot and the nir slot of teh Spectra* object
-#'
+#' @author Pierre Roudier \url{pierre.roudier@@gmail.com}
+#' @import stringr plyr
 .parse_formula <- function(formula, object){
-  require(stringr)
-
   formula <- str_c(deparse(formula, 500), collapse="")
 
   elements <- str_split(formula, fixed("~"))[[1]]
@@ -273,8 +287,7 @@ setReplaceMethod("id", "Spectra",
   }
 )
 
-## id(mySDF) <- ~ myIDcolname
-##
+
 setReplaceMethod("id", "SpectraDataFrame",
   function(object, value) {
     if (is(value, 'formula')){
