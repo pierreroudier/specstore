@@ -1,12 +1,12 @@
-\name{wl}
-\alias{wl}
-\alias{wl<-}
+\name{id}
+\alias{id}
+\alias{id<-}
 
-\title{Retrieves or sets the wavelengths of a \code{Spectra*} object.}
+\title{Retrieves or sets the ids of a \code{Spectra*} object.}
 
 \usage{
-wl(object, ...)
-wl(object) <- value
+id(object, ...)
+id(object) <- value
 }
 
 \description{Either retrieves the wavelengths from a \code{Spectra*} object, or creates a \code{Spectra*} object from a \code{"data.frame"} object by setting some of its columns as the wavelengths.}
