@@ -361,21 +361,21 @@ setReplaceMethod("data", "Spectra",
 ## Modifying the spectra matrix
 ## WORK NEEDED!!
 
-"set_spectra<-.Spectra" <- function(obj, id=obj@id, value){
-  if (all(id %in% obj@id)){
-    id.lines <- which(obj@id %in% id)
-    
-    if (nrow(value) != nrow(id))
-      stop("the matrix you try to substitute does not have suitable dimensions")
-    if (ncol(value) != length(obj@wl))
-      stop("inconsistent wavelengths")
-    
-    obj@nir[id.lines,] <- value
-  }
-  else 
-    stop('the proposed ids are not matching the object ids')
-  obj
-}
+# "set_spectra<-.Spectra" <- function(obj, id=obj@id, value){
+#   if (all(id %in% obj@id)){
+#     id.lines <- which(obj@id %in% id)
+#     
+#     if (nrow(value) != nrow(id))
+#       stop("the matrix you try to substitute does not have suitable dimensions")
+#     if (ncol(value) != length(obj@wl))
+#       stop("inconsistent wavelengths")
+#     
+#     obj@nir[id.lines,] <- value
+#   }
+#   else 
+#     stop('the proposed ids are not matching the object ids')
+#   obj
+# }
 
 ## Adding objects together
 # Maybe to be moved into the Spectra() and SpectraDataFrame() method.
@@ -411,7 +411,6 @@ if (!isGeneric("add"))
     stop('You can not add objects with different wavelength units')
 
   if (("data" %in% slotNames(x)) & ("data" %in% slotNames(y))) {
-    require(plyr)
     tmp$data <- join(x@data, y@data, type="full")
     res <- SpectraDataFrame(wl=tmp$wl, nir=tmp$nir, id=tmp$id, units=tmp$units, data=tmp$data)
   }
@@ -437,24 +436,28 @@ add.Spectra <- function(...){
 setMethod("add", signature=c("Spectra", "Spectra"), 
   function(x,y,...) add.Spectra(x, y, ...))
 
+setMethod("add", signature=c("SpectraDataFrame", "SpectraDataFrame"), 
+  function(x,y,...) add.Spectra(x, y, ...))
 
 
-## Transform the Spectra object
+# ## Transform the Spectra object
+# 
+# transform.Spectra <- function (obj, condition, ...){
+#   # for that class the transform is focusing exclusively on the NIR spectra
+#   require(reshape2)
+#   require(stringr)
+#   condition_call <- substitute(condition)
+#   if (!str_detect(deparse(condition_call), "nir"))
+#     stop('use the nir variable in the condition call')
+#   nir <- melt(spectra(obj), value.name="nir", varnames=c('id','wl'))
+#   nir <- transform(nir, ...)
+#   nir <- matrix(nir$nir, nrow=nrow(obj), ncol=length(wl(obj)))
+#   rownames(nir) <- id(obj)
+#   colnames(nir) <- wl(obj)  
+#   Spectra(wl=wl(obj), nir=nir, id=id(obj), units=get_units(obj))
+# }
 
-transform.Spectra <- function (obj, condition, ...){
-  # for that class the transform is focusing exclusively on the NIR spectra
-  require(reshape2)
-  require(stringr)
-  condition_call <- substitute(condition)
-  if (!str_detect(deparse(condition_call), "nir"))
-    stop('use the nir variable in the condition call')
-  nir <- melt(spectra(obj), value.name="nir", varnames=c('id','wl'))
-  nir <- transform(nir, ...)
-  nir <- matrix(nir$nir, nrow=nrow(obj), ncol=length(wl(obj)))
-  rownames(nir) <- id(obj)
-  colnames(nir) <- wl(obj)  
-  Spectra(wl=wl(obj), nir=nir, id=id(obj), units=get_units(obj))
-}
+# setMethod("transform", "Spectra", transform.Spectra)
 
 #`  Mutate a Spectra object by adding new or replacing existing columns.
 #`
@@ -469,36 +472,40 @@ transform.Spectra <- function (obj, condition, ...){
 #' Mutate seems to be considerably faster than transform for large data
 #' frames.
 #'
-#' @param obj an object inheriting from the Spectra class
+#' @param obj an object inheriting from the \code{Spectra} class
 #' @param ... named parameters giving definitions of new columns
 #' @seealso \code{\link{mutate}}
+#' @author Pierre Roudier \url{pierre.roudier@@gmail.com}
 #' @export
-mutate.Spectra <- function (obj, ...){
-  require(reshape2)
-  require(stringr)
-  require(plyr)
-
+mutate.Spectra <- function (.data, ...){
+  
   condition_call <- substitute(list(...))
 
   # you want to affect the spectra
   if (!str_detect(deparse(condition_call), "nir")) 
     stop('You must use the nir variable in the condition call')
 
-  nir <- melt(spectra(obj), varnames=c('id','wl'))
+  nir <- melt(spectra(.data), varnames=c('id','wl'))
   names(nir)[which(names(nir) == 'value')] <- 'nir'
   nir <- mutate(nir, ...)
-  nir <- matrix(nir$nir, nrow=nrow(obj), ncol=length(wl(obj)))
+  nir <- matrix(nir$nir, nrow=nrow(.data), ncol=length(wl(.data)))
 
-  rownames(nir) <- id(obj)
-  colnames(nir) <- wl(obj)  
+  rownames(nir) <- id(.data)
+  colnames(nir) <- wl(.data)  
 
-  Spectra(wl=wl(obj), nir=nir, id=id(obj), units=get_units(obj))
+  Spectra(wl=wl(.data), nir=nir, id=id(.data), units=get_units(.data))
 }
 
-## Melting the spectra matrix
+setMethod("mutate", "Spectra", mutate.Spectra)
 
+#` Melting the spectra matrix
+#'
+#' @param obj an object inheriting from the \code{Spectra} class
+#' @export
+#' @author Pierre Roudier \url{pierre.roudier@@gmail.com}
+#` @import reshape2
 melt_spectra <- function(obj, ...){
-  require(reshape2)
+
   # if obj is Spectra* class
   if (inherits(obj, 'Spectra')){
     x <- spectra(obj)
