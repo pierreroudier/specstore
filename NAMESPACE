@@ -1,0 +1,17 @@
+import(ggplot2, lattice)
+import(reshape2, plyr, stringr)
+
+exportClasses(SpectraDataFrame)
+exportClasses(Spectra)
+
+export(continuum_removal, big.head, big.tail, melt_spectra)
+export(Spectra, SpectraDataFrame)
+
+S3method(plot, Spectra)
+S3method(names, SpectraDataFrame)
+S3method("names<-", SpectraDataFrame)
+
+exportMethods(spectra, "spectra<-", wl, "wl<-", id, "id<-", "data<-", "data<-", get_units, get_resolution, get_data, "[", "$", "[[", add)
+exportMethods(aggregate_spectra, subset, mutate)
+
+exportPattern("^[^\\.]")
