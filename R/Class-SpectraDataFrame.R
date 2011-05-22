@@ -1,6 +1,3 @@
-#' @include Class-Spectra.R
-roxygen()
-
 #' Class for spectra collections
 #'
 #' @slot wl object of class "\code{numeric}"; the wavelengths at which the spectra has been measured
@@ -15,10 +12,7 @@ roxygen()
 setClass(
   Class='SpectraDataFrame',
   representation=representation(
-    wl='numeric',
-    nir='matrix',
-    id='data.frame',
-    units="character",
+    "Spectra",
     data='data.frame'
   ),
   prototype=prototype(
