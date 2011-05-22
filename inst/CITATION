@@ -6,7 +6,7 @@ vers <- paste("R package version", meta$Version)
 
 citEntry(entry = "Manual",
   title = "specstore: Storing and Manipulating Spectroscopy Data in R",
-  author = personlist(as.person("Pierre Roudier")),
+  author = personList(as.person("Pierre Roudier")),
   year = year,
   note = vers,
   textVersion = paste("Pierre Roudier (", year, "). specstore: Storing and Manipulating Spectroscopy Data in R ", vers, ".", sep="")
