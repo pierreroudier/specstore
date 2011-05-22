@@ -1,6 +1,3 @@
-#' @include Spectra-methods.R
-roxygen()
-
 "SpectraDataFrame" <- function(..., wl=numeric(), nir=matrix(), id=as.character(NA), units="nm", data=data.frame()) {
 
   dotargs <- list(...)
@@ -162,6 +159,8 @@ subset.SpectraDataFrame <- function(x, subset, select, drop = FALSE, ...) {
   x
 }
 
+setMethod("subset", "SpectraDataFrame", subset.SpectraDataFrame)
+
 ## Split
 
 setMethod("split", "SpectraDataFrame", split.data.frame)
@@ -183,7 +182,7 @@ separate.SpectraDataFrame <- function(obj, calibration){
 setMethod("separate", "SpectraDataFrame", separate.SpectraDataFrame)
 
 if (!isGeneric("unseparate"))
-  setGeneric("unseparate", function(obj, calibration, ...)
+  setGeneric("unseparate", function(obj, ...)
     standardGeneric("unseparate"))
 
 unseparate.SpectraDataFrame <- function(obj){
@@ -196,30 +195,29 @@ setMethod("unseparate", "list", unseparate.SpectraDataFrame)
 
 ## Mutate the SpectraDataFrame object	
 
-mutate.SpectraDataFrame <- function (obj, ...){
-  require(reshape2)
-  require(stringr)
-  require(plyr)
+mutate.SpectraDataFrame <- function (.data, ...){
 
   condition_call <- substitute(list(...))
 
   # you want to affect the spectra
   if (str_detect(deparse(condition_call), "nir")) {
-    nir <- melt(spectra(obj), varnames=c('id','wl'))
+    nir <- melt(spectra(.data), varnames=c('id','wl'))
     names(nir)[which(names(nir) == 'value')] <- 'nir'
     nir <- mutate(nir, ...)
     nir <- acast(nir, id ~ wl) #matrix(nir$nir, nrow=length(obj), ncol=length(wl(obj)))
 #     rownames(nir) <- id(obj)
 #     colnames(nir) <- wl(obj)  
     
-    res <- SpectraDataFrame(wl=wl(obj), nir=nir, id=id(obj), units=get_units(obj), data=get_data(obj))
+    res <- SpectraDataFrame(wl=wl(.data), nir=nir, id=id(.data), units=get_units(.data), data=get_data(.data))
   }
 
   # you want to affect the data
   else {
-    data <- get_data(obj)
-    data <- transform(data, condition)
-    res <- SpectraDataFrame(wl=wl(obj), nir=spectra(nir), id=id(obj), units=get_units(obj), data=data)
+    data <- get_data(.data)
+    data <- mutate(data, ...)
+    res <- SpectraDataFrame(wl=wl(.data), nir=spectra(nir), id=id(.data), units=get_units(.data), data=data)
   }
   res
 }
+
+setMethod("mutate", "SpectraDataFrame", mutate.SpectraDataFrame)
