@@ -16,4 +16,4 @@
 #' @title Stores and eases the manipulation of Vis-NIR spectra and associated data
 #' @author Pierre Roudier \email{pierre.roudier@@gmail.com}
 #' @keywords spectroscopy
-roxygen()
+NULL
