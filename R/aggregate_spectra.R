@@ -1,6 +1,3 @@
-#' @include SpectraDataFrame-methods.R
-roxygen()
-
 #' Aggregates the spectral information of a Spectra object using 
 #' an aggregation function chosen by the user.
 #'
@@ -33,3 +30,5 @@ aggregate_spectra <- function(obj, fun = mean, ...){
   
   res
 }
+
+setMethod("aggregate_spectra", "Spectra", aggregate_spectra)

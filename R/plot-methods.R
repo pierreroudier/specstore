@@ -8,13 +8,9 @@
 #' @import ggplot2 lattice
 plot.Spectra <- function(x, gg=FALSE, ...){
   s.melt <- melt_spectra(x)
-  if (gg) {
-    require(ggplot2)
+  if (gg)
     p <- ggplot(s.melt) + geom_line(aes(x=wl, y=nir, group=id)) # + ylim(c(0,1))
-  }
-  else {
-    require(lattice)
+  else
     p <- xyplot(nir ~ wl, groups=id, data=s.melt, type='l', col.line='black', ...)
-  }
   p
 }
