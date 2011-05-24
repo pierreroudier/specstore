@@ -1,4 +1,4 @@
--------------------------- specstore 0.1-2 (2011-MM-DD) --------------------------
+-------------------------- specstore 0.1-2 (2011-05-25) --------------------------
 * Method get_units() is now called units()
 * Method get_resolution() is now called resolution()
 * Method get_data() is now called data()
