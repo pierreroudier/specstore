@@ -1,12 +1,11 @@
 \name{data}
 \alias{data}
-\alias{get_data}
 \alias{data<-}
 
 \title{Retrieves or sets the data slot of a SpectraDataFrame object.}
 
 \usage{
-get_data(object, ...)
+data(object, ...)
 data(object) <- value
 }
 
