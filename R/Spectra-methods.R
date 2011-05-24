@@ -101,7 +101,7 @@ print.summary.Spectra = function(x, ...) {
     if (nrow(x[['id']]) > 0){
       cat("Wavelength range: ")
       cat(min(x[["wl"]], na.rm=TRUE), " to ", max(x[["wl"]], na.rm=TRUE)," ", x[["units"]], "\n", sep="")
-      SpectralResolution <- get_resolution(x[["wl"]])
+      SpectralResolution <- resolution(x[["wl"]])
       if (length(SpectralResolution) > 1) 
 	cat("Spectral resolution: irregular wavelength spacing\n")
       else {
@@ -134,7 +134,7 @@ setMethod(
     cat("Set of ", nrow(object@id)," spectra\n", sep='')
     if (nrow(object@id) > 0){
       cat("Wavelength range: ", min(object@wl, na.rm=TRUE),"-",max(object@wl, na.rm=TRUE)," ", object@units, "\n", sep="")
-      SpectralResolution <- get_resolution(object)
+      SpectralResolution <- resolution(object)
       if (length(SpectralResolution) > 1) 
         cat("Spectral resolution: irregular wavelength spacing\n")
       else {
@@ -262,9 +262,9 @@ definition=function(x)
 
 ## Returns spectral resolution of the wavelengths
 
-if (!isGeneric("get_resolution"))
-  setGeneric("get_resolution", function(object, ...)
-    standardGeneric("get_resolution"))
+if (!isGeneric("resolution"))
+  setGeneric("resolution", function(object, ...)
+    standardGeneric("resolution"))
 
 #' Returns the spectral resolution of an object
 #'
@@ -272,9 +272,9 @@ if (!isGeneric("get_resolution"))
 #' @param digits the number of significant digits 
 #' @return a vector
 #'
-#' @method get_resolution numeric 
+#' @method resolution numeric 
 #' @author Pierre Roudier \url{pierre.roudier@@gmail.com}
-get_resolution.numeric <- function(object, digits = 10, ...){
+resolution.numeric <- function(object, digits = 10, ...){
   unique(round(diff(object), digits = digits)) # round - otherwise diff() picks some unsignificant values
 }
 
@@ -284,16 +284,16 @@ get_resolution.numeric <- function(object, digits = 10, ...){
 #' @param digits the number of significant digits 
 #' @return a vector
 #'
-#' @method get_resolution Spectra
+#' @method resolution Spectra
 #' @author Pierre Roudier \url{pierre.roudier@@gmail.com}
-get_resolution.Spectra <- function(object, digits=10, ...){
+resolution.Spectra <- function(object, digits=10, ...){
   x <- wl(object)
   unique( round( diff(x), digits=digits) )
 }
 
-setMethod("get_resolution", "numeric", get_resolution.numeric)
-setMethod("get_resolution", "integer", get_resolution.numeric)
-setMethod("get_resolution", "Spectra", get_resolution.Spectra)
+setMethod("resolution", "numeric", resolution.numeric)
+setMethod("resolution", "integer", resolution.numeric)
+setMethod("resolution", "Spectra", resolution.Spectra)
 
 ## overloads
 

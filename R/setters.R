@@ -229,7 +229,7 @@ setReplaceMethod("spectra", "data.frame",
       
       cat("Wavelength range: ")
       cat(min(wl(res), na.rm=TRUE), " to ", max(wl(res), na.rm = TRUE)," ", units(res), "\n", sep="")
-      cat("Spectral resolution: ", get_resolution(wl(res)) , " ",  units(res), "\n", sep="")
+      cat("Spectral resolution: ", resolution(wl(res)) , " ",  units(res), "\n", sep="")
       
       if (length(ind.vars$data != 0))
 	res <- SpectraDataFrame(res, data=object[, ind.vars$data, drop = FALSE])
