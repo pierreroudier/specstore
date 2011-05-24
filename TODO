@@ -1,0 +1,4 @@
+- Making mutate() work with the attributes
+- Push the SpatialSpectraDataFrame class
+- Put some sample data (and document it)
+
