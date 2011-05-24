@@ -198,32 +198,3 @@ unseparate.SpectraDataFrame <- function(obj){
 }
 
 setMethod("unseparate", "list", unseparate.SpectraDataFrame)
-
-## Mutate the SpectraDataFrame object	
-
-mutate.SpectraDataFrame <- function (.data, ...){
-
-  condition_call <- substitute(list(...))
-
-  # you want to affect the spectra
-  if (str_detect(deparse(condition_call), "nir")) {
-    nir <- melt(spectra(.data), varnames=c('id','wl'))
-    names(nir)[which(names(nir) == 'value')] <- 'nir'
-    nir <- mutate(nir, ...)
-    nir <- acast(nir, id ~ wl) #matrix(nir$nir, nrow=length(obj), ncol=length(wl(obj)))
-#     rownames(nir) <- id(obj)
-#     colnames(nir) <- wl(obj)  
-    
-    res <- SpectraDataFrame(wl=wl(.data), nir=nir, id=id(.data), units=units(.data), data=data(.data))
-  }
-
-  # you want to affect the data
-  else {
-    data <- data(.data)
-    data <- mutate(data, ...)
-    res <- SpectraDataFrame(wl=wl(.data), nir=spectra(nir), id=id(.data), units=units(.data), data=data)
-  }
-  res
-}
-
-setMethod("mutate", "SpectraDataFrame", mutate.SpectraDataFrame)

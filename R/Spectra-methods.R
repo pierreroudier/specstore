@@ -491,22 +491,41 @@ setMethod("add", signature=c("SpectraDataFrame", "SpectraDataFrame"),
 #' @author Pierre Roudier \url{pierre.roudier@@gmail.com}
 #' @export
 mutate.Spectra <- function (.data, ...){
-  
-  condition_call <- substitute(list(...))
 
-  # you want to affect the spectra
-  if (!str_detect(deparse(condition_call), "nir")) 
-    stop('You must use the nir variable in the condition call')
+  wls <- wl(.data)
+  uns <- units(.data)
+  ids <- id(.data)
 
-  nir <- melt(spectra(.data), varnames=c('id','wl'))
-  names(nir)[which(names(nir) == 'value')] <- 'nir'
-  nir <- mutate(nir, ...)
-  nir <- matrix(nir$nir, nrow=nrow(.data), ncol=length(wl(.data)))
+  cols <- as.list(substitute(list(...))[-1])
+  cols <- cols[names(cols) != ""]
 
-  rownames(nir) <- id(.data)
-  colnames(nir) <- wl(.data)  
+  # transformations on the spectra
+  if (any(names(cols) == 'nir')) {
+    nir <- reshape2::melt(spectra(.data), varnames=c('id', 'wl'), value.name = "nir")
+    nir[["nir"]] <- eval(cols[["nir"]], nir, parent.frame())
+    nir <- acast(nir, id ~ wl)
+  }
+  else
+    nir <- spectra(.data)
 
-  Spectra(wl=wl(.data), nir=nir, id=id(.data), units=units(.data))
+  res <- Spectra(wl = wls, nir = nir, id = ids, units = uns)
+
+  # transformations on the data - only for classes inheriting from SpectraDataFrame
+  if ("data" %in% slotNames(.data)) {
+
+    d <- data(.data)
+
+    if (any(names(cols) %in% names(.data))) {
+      cols_data <- names(cols)[which(names(cols) %in% names(.data))]
+      for (col in cols_data){
+	d[[col]] <- eval(cols[[col]], d, parent.frame())
+      }
+    }
+
+    res <- SpectraDataFrame(res, data = d)
+  }
+
+  res
 }
 
 setMethod("mutate", "Spectra", mutate.Spectra)
