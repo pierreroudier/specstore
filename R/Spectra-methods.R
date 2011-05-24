@@ -220,9 +220,9 @@ setMethod("id", "Spectra",
 )
 
 # Getting the units
-if (!isGeneric("get_units"))
-  setGeneric("get_units", function(object, ...)
-    standardGeneric("get_units"))
+if (!isGeneric("units"))
+  setGeneric("units", function(object, ...)
+    standardGeneric("units"))
 
 #' Returns the unit in which the wavelengths values are expressed
 #'
@@ -231,7 +231,7 @@ if (!isGeneric("get_units"))
 #'
 #' @export 
 #' @author Pierre Roudier \url{pierre.roudier@@gmail.com}
-setMethod("get_units", "Spectra", 
+setMethod("units", "Spectra", 
   function(object)
     object@units
 )
@@ -454,7 +454,7 @@ setMethod("add", signature=c("SpectraDataFrame", "SpectraDataFrame"),
 #   nir <- matrix(nir$nir, nrow=nrow(obj), ncol=length(wl(obj)))
 #   rownames(nir) <- id(obj)
 #   colnames(nir) <- wl(obj)  
-#   Spectra(wl=wl(obj), nir=nir, id=id(obj), units=get_units(obj))
+#   Spectra(wl=wl(obj), nir=nir, id=id(obj), units=units(obj))
 # }
 
 # setMethod("transform", "Spectra", transform.Spectra)
@@ -493,7 +493,7 @@ mutate.Spectra <- function (.data, ...){
   rownames(nir) <- id(.data)
   colnames(nir) <- wl(.data)  
 
-  Spectra(wl=wl(.data), nir=nir, id=id(.data), units=get_units(.data))
+  Spectra(wl=wl(.data), nir=nir, id=id(.data), units=units(.data))
 }
 
 setMethod("mutate", "Spectra", mutate.Spectra)

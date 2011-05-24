@@ -20,7 +20,7 @@ aggregate_spectra <- function(obj, fun = mean, ...){
   # applying the function to the spectra
   nir <- aaply(.data=spectra(obj), .margins=2, .fun=fun, ...)
 
-  res <- Spectra(wl=wl(obj), nir=nir, id=id, units=get_units(obj))
+  res <- Spectra(wl=wl(obj), nir=nir, id=id, units=units(obj))
 
   # if there is some data
   if (is(obj, 'SpectraDataFrame')) {

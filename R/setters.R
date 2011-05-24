@@ -95,7 +95,7 @@ setReplaceMethod("wl", "Spectra",
       else if (length(value) < length(object)) {
 	ind.wl <- which(wl(d) %in% value) 
 	nir <- spectra(object)[, ind.wl, drop=FALSE]
-	res <- Spectra(id = id(object), wl = value, nir = nir, units = get_units(object))
+	res <- Spectra(id = id(object), wl = value, nir = nir, units = units(object))
 	if ("data" %in% slotNames(object))
 	  res <- SpectraDataFrame(res, data = get_data(object))
       }
@@ -228,8 +228,8 @@ setReplaceMethod("spectra", "data.frame",
       res <- Spectra(id=ids, wl=wl, nir=nir)
       
       cat("Wavelength range: ")
-      cat(min(wl(res), na.rm=TRUE), " to ", max(wl(res), na.rm = TRUE)," ", get_units(res), "\n", sep="")
-      cat("Spectral resolution: ", get_resolution(wl(res)) , " ",  get_units(res), "\n", sep="")
+      cat(min(wl(res), na.rm=TRUE), " to ", max(wl(res), na.rm = TRUE)," ", units(res), "\n", sep="")
+      cat("Spectral resolution: ", get_resolution(wl(res)) , " ",  units(res), "\n", sep="")
       
       if (length(ind.vars$data != 0))
 	res <- SpectraDataFrame(res, data=object[, ind.vars$data, drop = FALSE])

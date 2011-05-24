@@ -19,7 +19,7 @@
     wl <- wl(s)
     nir <- spectra(s)
     id <- id(s)
-    units <- get_units(s)
+    units <- units(s)
   }
 
   else {
@@ -155,7 +155,7 @@ subset.SpectraDataFrame <- function(x, subset, select, drop = FALSE, ...) {
   # remove unused factors
   df_sub <- droplevels(df_sub)
   id_selected <- which(rownames(df) %in% rownames(df_sub))
-  x <- SpectraDataFrame(wl=wl(x), nir=spectra(x)[id_selected, , drop = FALSE], id=id(x)[id_selected, 1, drop = FALSE], units=get_units(x), data=df_sub)
+  x <- SpectraDataFrame(wl=wl(x), nir=spectra(x)[id_selected, , drop = FALSE], id=id(x)[id_selected, 1, drop = FALSE], units=units(x), data=df_sub)
   x
 }
 
@@ -208,14 +208,14 @@ mutate.SpectraDataFrame <- function (.data, ...){
 #     rownames(nir) <- id(obj)
 #     colnames(nir) <- wl(obj)  
     
-    res <- SpectraDataFrame(wl=wl(.data), nir=nir, id=id(.data), units=get_units(.data), data=get_data(.data))
+    res <- SpectraDataFrame(wl=wl(.data), nir=nir, id=id(.data), units=units(.data), data=get_data(.data))
   }
 
   # you want to affect the data
   else {
     data <- get_data(.data)
     data <- mutate(data, ...)
-    res <- SpectraDataFrame(wl=wl(.data), nir=spectra(nir), id=id(.data), units=get_units(.data), data=data)
+    res <- SpectraDataFrame(wl=wl(.data), nir=spectra(nir), id=id(.data), units=units(.data), data=data)
   }
   res
 }
