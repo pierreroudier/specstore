@@ -1,3 +1,7 @@
+-------------------------- specstore 0.1-2 (2011-MM-DD) --------------------------
+* Method get_units() is now called units()
+* Method get_data() is now called data()
+
 -------------------------- specstore 0.1-1 (2011-05-24) --------------------------
 * proper package structure and documentation
 * first semi-public release

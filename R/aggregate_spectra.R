@@ -24,7 +24,7 @@ aggregate_spectra <- function(obj, fun = mean, ...){
 
   # if there is some data
   if (is(obj, 'SpectraDataFrame')) {
-    data <- aaply(.data=get_data(obj), .margins=2, .fun=fun, ...)
+    data <- aaply(.data=data(obj), .margins=2, .fun=fun, ...)
     res <- SpectraDataFrame(res, data=data.frame(matrix(data, nrow=1, dimnames=list(id, names(data)))))
   }
   

@@ -74,7 +74,7 @@
 
 as.data.frame.SpectraDataFrame = function(x, ...)  {
   df <- as.data.frame(spectra(x))
-  data <- get_data(x)
+  data <- data(x)
   id <- id(x)
   df <- data.frame(id, data, df)
   names(df) <- c(names(id), names(data), wl(x))
@@ -86,11 +86,11 @@ setAs("SpectraDataFrame", "data.frame", function(from)
 
 ## Getting the data
 
-if (!isGeneric("get_data"))
-  setGeneric("get_data", function(object, ...)
-    standardGeneric("get_data"))
+if (!isGeneric("data"))
+  setGeneric("data", function(object, ...)
+    standardGeneric("data"))
 
-setMethod("get_data", "SpectraDataFrame", 
+setMethod("data", "SpectraDataFrame", 
   function(object)
     object@data
 )
@@ -134,7 +134,7 @@ names.SpectraDataFrame <- function(x) names(x@data)
 
 subset.SpectraDataFrame <- function(x, subset, select, drop = FALSE, ...) {
   # adapted from subset.data.frame
-  df <- get_data(x)
+  df <- data(x)
   if (missing(subset)) 
         r <- TRUE
   else {
@@ -208,12 +208,12 @@ mutate.SpectraDataFrame <- function (.data, ...){
 #     rownames(nir) <- id(obj)
 #     colnames(nir) <- wl(obj)  
     
-    res <- SpectraDataFrame(wl=wl(.data), nir=nir, id=id(.data), units=units(.data), data=get_data(.data))
+    res <- SpectraDataFrame(wl=wl(.data), nir=nir, id=id(.data), units=units(.data), data=data(.data))
   }
 
   # you want to affect the data
   else {
-    data <- get_data(.data)
+    data <- data(.data)
     data <- mutate(data, ...)
     res <- SpectraDataFrame(wl=wl(.data), nir=spectra(nir), id=id(.data), units=units(.data), data=data)
   }
