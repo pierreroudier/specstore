@@ -9,7 +9,7 @@
 \title{Utility functions}
 
 \usage{
-units(object, ...)
+units(object)
 units(object) <- value
 resolution(object, ...)
 }
