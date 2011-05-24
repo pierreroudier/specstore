@@ -2,10 +2,13 @@
 
 \docType{class}
 
+\alias{specstore}
 \alias{Spectra-class}
 \alias{SpectraDataFrame-class}
 \alias{as.data.frame.Spectra}
 \alias{as.data.frame.SpectraDataFrame}
+\alias{names.SpectraDataFrame}
+\alias{names<-.SpectraDataFrame}
 
 \alias{print, Spectra-method}
 \alias{show, Spectra-method}
