@@ -163,7 +163,13 @@ setMethod("subset", "SpectraDataFrame", subset.SpectraDataFrame)
 
 ## Split
 
-setMethod("split", "SpectraDataFrame", split.data.frame)
+split.SpectraDataFrame <- function(x, f, drop = FALSE, ...){
+  lapply(split(seq_len(nrow(x)), f, drop = drop, ...), 
+    function(ind) x[ind, , drop = FALSE]
+  )
+}
+
+setMethod("split", "SpectraDataFrame", split.SpectraDataFrame)
 
 ## Separate calibration set vs validation set
 
