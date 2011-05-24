@@ -221,7 +221,7 @@ setMethod("id", "Spectra",
 
 # Getting the units
 if (!isGeneric("units"))
-  setGeneric("units", function(object, ...)
+  setGeneric("units", function(x)
     standardGeneric("units"))
 
 #' Returns the unit in which the wavelengths values are expressed
@@ -231,9 +231,22 @@ if (!isGeneric("units"))
 #'
 #' @export 
 #' @author Pierre Roudier \url{pierre.roudier@@gmail.com}
-setMethod("units", "Spectra", 
+setMethod("units", signature = "Spectra", 
   function(object)
     object@units
+)
+
+if (!isGeneric('units<-'))
+  setGeneric('units<-', function(object, value) 
+    standardGeneric('units<-'))
+
+setReplaceMethod("units", "Spectra",
+  function(object, value) {
+    if (!is.character(value) | length(value) != 1)
+      stop("Units have to be passed as a single character string.")
+    object@units <- value
+    object
+  }
 )
     
 #' Returns the number of wavelengths in the object
