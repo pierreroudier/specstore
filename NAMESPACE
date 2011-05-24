@@ -11,7 +11,7 @@ S3method(plot, Spectra)
 S3method(names, SpectraDataFrame)
 S3method("names<-", SpectraDataFrame)
 
-exportMethods(spectra, "spectra<-", wl, "wl<-", id, "id<-", "data<-", "data<-", get_units, get_resolution, get_data, "[", "$", "[[", add)
+exportMethods(spectra, "spectra<-", wl, "wl<-", id, "id<-", data, "data<-", units, "units<-", resolution, "[", "$", "[[", add)
 exportMethods(aggregate_spectra, subset, mutate)
 
 exportPattern("^[^\\.]")
