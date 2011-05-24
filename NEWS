@@ -2,6 +2,9 @@
 * Method get_units() is now called units()
 * Method get_resolution() is now called resolution()
 * Method get_data() is now called data()
+* New units<- method (changes the unit in which the wavelengths are expressed)
+* New split.SpectraDataFrame method, see ?split
+* mutate() is now implemented as one only method (not anymore duplicated for each Class), and is now working properly with attributes. You can even muate the spcetra and the attributes of an object in one command.
 
 -------------------------- specstore 0.1-1 (2011-05-24) --------------------------
 * proper package structure and documentation
