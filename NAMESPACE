@@ -1,4 +1,4 @@
-import(ggplot2, lattice)
+import(lattice)
 import(reshape2, plyr, stringr)
 
 exportClasses(SpectraDataFrame)

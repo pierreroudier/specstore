@@ -8,6 +8,7 @@ Maintainer: Pierre Roudier <pierre.roudier@gmail.com>
 Description: Stores and eases the manipulation of spectra and associated data.
 URL: http://github.com/pierreroudier/specstore/
 Depends: R (>= 2.12)
-Imports: methods, plyr, reshape2, stringr, lattice, ggplot2
+Imports: methods, plyr, reshape2, stringr, lattice
+Suggests: ggplot2, baseline
 License: GPL
 LazyData: true
