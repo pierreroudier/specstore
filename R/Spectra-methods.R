@@ -371,25 +371,6 @@ setReplaceMethod("data", "Spectra",
   }
 )
 
-## Modifying the spectra matrix
-## WORK NEEDED!!
-
-# "set_spectra<-.Spectra" <- function(obj, id=obj@id, value){
-#   if (all(id %in% obj@id)){
-#     id.lines <- which(obj@id %in% id)
-#     
-#     if (nrow(value) != nrow(id))
-#       stop("the matrix you try to substitute does not have suitable dimensions")
-#     if (ncol(value) != length(obj@wl))
-#       stop("inconsistent wavelengths")
-#     
-#     obj@nir[id.lines,] <- value
-#   }
-#   else 
-#     stop('the proposed ids are not matching the object ids')
-#   obj
-# }
-
 ## Adding objects together
 # Maybe to be moved into the Spectra() and SpectraDataFrame() method.
 
