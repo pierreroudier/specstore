@@ -221,7 +221,7 @@ setMethod("id", "Spectra",
 
 # Getting the units
 if (!isGeneric("units"))
-  setGeneric("units", function(x)
+  setGeneric("units", function(object)
     standardGeneric("units"))
 
 #' Returns the unit in which the wavelengths values are expressed
