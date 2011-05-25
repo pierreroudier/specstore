@@ -164,9 +164,7 @@ setMethod("subset", "SpectraDataFrame", subset.SpectraDataFrame)
 ## Split
 
 split.SpectraDataFrame <- function(x, f, drop = FALSE, ...){
-  lapply(split(seq_len(nrow(x)), f, drop = drop, ...), 
-    function(ind) x[ind, , drop = FALSE]
-  )
+  lapply(split(seq_len(nrow(x)), f, drop = drop, ...), function(ind) x[ind, , drop = FALSE])
 }
 
 setMethod("split", "SpectraDataFrame", split.SpectraDataFrame)
