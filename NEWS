@@ -1,3 +1,6 @@
+-------------------------- specstore 0.1-3 (2011-MM-DD) --------------------------
+* split() now works for any class inheriting from Spectra
+
 -------------------------- specstore 0.1-2 (2011-05-25) --------------------------
 * Method get_units() is now called units()
 * Method get_resolution() is now called resolution()

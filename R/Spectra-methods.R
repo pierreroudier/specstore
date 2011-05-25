@@ -452,25 +452,13 @@ setMethod("add", signature=c("Spectra", "Spectra"),
 setMethod("add", signature=c("SpectraDataFrame", "SpectraDataFrame"), 
   function(x,y,...) add.Spectra(x, y, ...))
 
+## Split
 
-# ## Transform the Spectra object
-# 
-# transform.Spectra <- function (obj, condition, ...){
-#   # for that class the transform is focusing exclusively on the NIR spectra
-#   require(reshape2)
-#   require(stringr)
-#   condition_call <- substitute(condition)
-#   if (!str_detect(deparse(condition_call), "nir"))
-#     stop('use the nir variable in the condition call')
-#   nir <- melt(spectra(obj), value.name="nir", varnames=c('id','wl'))
-#   nir <- transform(nir, ...)
-#   nir <- matrix(nir$nir, nrow=nrow(obj), ncol=length(wl(obj)))
-#   rownames(nir) <- id(obj)
-#   colnames(nir) <- wl(obj)  
-#   Spectra(wl=wl(obj), nir=nir, id=id(obj), units=units(obj))
-# }
+split.Spectra <- function(x, f, drop = FALSE, ...){
+  lapply(split(seq_len(nrow(x)), f, drop = drop, ...), function(ind) x[ind, , drop = FALSE])
+}
 
-# setMethod("transform", "Spectra", transform.Spectra)
+setMethod("split", "Spectra", split.Spectra)
 
 #`  Mutate a Spectra object by adding new or replacing existing columns.
 #`

@@ -1,7 +1,7 @@
 \name{split}
 
 \alias{split}
-\alias{split.SpectraDataFrame}
+\alias{split.Spectra}
 
 \title{Utility functions}
 
@@ -9,13 +9,13 @@
 split(x, f, drop = FALSE, ...)
 }
 
-\description{Divide a SpectraDataFrame object into Groups}
+\description{Divide a Spectra* object into Groups}
 
 \details{
 This is an adaptation of the \code{split} function in the base package.
 }
 
-\value{A list of SpectraDataFrame objects.}
+\value{A list of objects of same class as \code{x}.}
 
 \arguments{
   \item{x}{vector or data frame containing values to be divided into groups.}
