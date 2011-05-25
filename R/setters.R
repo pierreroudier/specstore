@@ -272,6 +272,33 @@ setReplaceMethod("spectra", "data.frame",
   }
 )
 
+## for a Spectra* object
+setReplaceMethod("spectra", "Spectra",
+  function(object, value) {
+    if (is(value, 'matrix')) {
+      
+      # this method should not allow to change the number of samples in the colection
+      if (nrow(value) != nrow(spectra(object)))
+	stop("Dimensions of the matrix do not match the number of spectra in the Spectra object.")
+
+      # matrix of same dimensions is given
+      if (ncol(value) == ncol(spectra(object))) {
+	object@nir <- value
+      }
+      # matrix of different number of columns is given
+      else {
+	object@nir <- value
+	object@wl <- as.numeric(colnames(value))
+      }
+    }
+    else
+      stop(paste("You can't set the spectra of a Spectra* object by an object of class ", class(value), ". It has to be a matrix.", sep=""))
+    object
+  }
+)
+
+## id
+
 if (!isGeneric('id<-'))
   setGeneric('id<-', function(object, value) 
     standardGeneric('id<-'))
