@@ -318,40 +318,38 @@ setMethod("resolution", "Spectra", resolution.Spectra)
 #' @rdname extract-methods
 #'
 #' @author Pierre Roudier \url{pierre.roudier@@gmail.com}
-setMethod("[", c("Spectra", "ANY", "missing"), 
-  function(x, i, j, ... ) {
-    missing.i = missing(i)
-    missing.j = missing(j)
-    nargs = nargs() # e.g., a[3,] gives 2 for nargs, a[3] gives 1.
-    if (missing.i && missing.j) {
-      i = TRUE
-      j = TRUE
-    } else if (missing.j && !missing.i) { 
-      if (nargs == 2) {
-        j = i
-        i = TRUE
-      } else {
-        j = TRUE
-      }
-    } else if (missing.i && !missing.j)
-      i = TRUE
-    if (any(is.na(i))) 
-      stop("NAs not permitted in row index")
-    if (is.character(i)) {
-      i <- which(x@id %in% i) 
+setMethod("[", c("Spectra", "ANY", "ANY", "missing"), 
+  function(x, i, j, ...) {
+
+    missing.i <- missing(i)
+    missing.j <- missing(j)
+    nargs <- nargs() # e.g., a[3,] gives 2 for nargs, a[3] gives 1.
+
+    if (missing.i)
+      i <- TRUE
+    else {
+      # throws an error if trying to index rows using NAs
+      if (any(is.na(i))) 
+	stop("NAs not permitted in row index")
+      # in the case indexing rows by ids
+      if (is.character(i))
+	i <- which(x@id %in% i)
     }
-  #   if (!isTRUE(j)) # i.e., we do some sort of column selection => not sure on what we select (nir? data?)
+
+    if (missing.j)
+      j <- TRUE
+    else
+      j <- which(as.numeric(wl(x)) %in% j)
+
+    # If there is a data slot
     if ("data" %in% slotNames(x)) {
-      if (length(names(x@data)) == 1) {
-        df <- data.frame(x@data[i,])
-        names(df) <- names(x@data)
-      } 
-      else
-        df <- x@data[i,]
-      res <- SpectraDataFrame(wl=x@wl, nir=x@nir[i,], id=x@id[i, 1, drop = FALSE], data=df)
+      df <- x@data[i, , drop = FALSE]
+      res <- SpectraDataFrame(wl=x@wl[j], nir=x@nir[i, j, drop = FALSE], id=x@id[i, , drop = FALSE], data=df)
     }
+    # if this is a Spectra obecjt
     else 
-      res <- Spectra(wl=x@wl, nir=x@nir[i,], id=x@id[i, 1, drop = FALSE])
+      res <- Spectra(wl=x@wl[j], nir=x@nir[i, j, drop = FALSE], id=x@id[i, , drop = FALSE])
+
     res  
   }
 )
