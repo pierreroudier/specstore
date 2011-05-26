@@ -1,4 +1,4 @@
-# Very same function as in ggplot2 - all credit go to Hadley Wickham
+# Very same function as in ggplot2 - all credit goes to Hadley Wickham
 # Just here to avoid a dependency on ggplot2
 #
 .try_require <- function(package){
