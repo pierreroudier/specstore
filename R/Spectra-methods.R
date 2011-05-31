@@ -26,15 +26,15 @@
       id <- as.character(NULL)
     # if a matrix is here
     else
-      id <- as.character(seq(1, nrow(nir)))
-  } 
+      id <- data.frame(id = as.character(seq(1, nrow(nir))))
+  }
 
   # if ids are actually given by the user
   else {
     # Test of inconsistent ids when id is specified by the user
 
     # if theres only one spectra
-    if (is.null(nrow(nir))) { 
+    if (is.null(nrow(nir))) {
       if (nrow(id) != 1)
 	stop("number of individuals and number of rows in the spectra matrix don't match")
       if ((length(wl) > 1) & (length(nir) != length(wl)))
@@ -67,7 +67,7 @@ if (!isGeneric("summary"))
   setGeneric("summary", function(object, ...)
     standardGeneric("summary"))
 
-#' @param object an object inheriting from \code{Spectra} 
+#' @param object an object inheriting from \code{Spectra}
 #' @param ... Ignored
 #' @method summary Spectra
 #' @rdname Spectra
@@ -80,7 +80,7 @@ summary.Spectra <- function (object, ...){
     obj[["nir"]] = object@nir
     obj[["units"]] = object@units
     if ("data" %in% slotNames(object)) {
-        if (ncol(object@data) > 1) 
+        if (ncol(object@data) > 1)
             obj[["data"]] = summary(object@data)
         else obj[["data"]] = summary(object@data[[1]])
     }
@@ -102,12 +102,12 @@ print.summary.Spectra = function(x, ...) {
       cat("Wavelength range: ")
       cat(min(x[["wl"]], na.rm=TRUE), " to ", max(x[["wl"]], na.rm=TRUE)," ", x[["units"]], "\n", sep="")
       SpectralResolution <- resolution(x[["wl"]])
-      if (length(SpectralResolution) > 1) 
+      if (length(SpectralResolution) > 1)
 	cat("Spectral resolution: irregular wavelength spacing\n")
       else {
 	if (length(SpectralResolution) == 0)
 	  cat("Spectral resolution: NA\n")
-	else 
+	else
 	  cat("Spectral resolution: ", SpectralResolution , " ",  x[["units"]], "\n", sep="")
       }
       if (!is.null(x$data)) {
@@ -122,12 +122,12 @@ setMethod("print", "summary.Spectra", print.summary.Spectra)
 
 ## PRINT
 
-#' @param object an object inheriting from \code{Spectra} 
+#' @param object an object inheriting from \code{Spectra}
 #' @method show Spectra
 #' @rdname Spectra-methods
 #' @author Pierre Roudier \url{pierre.roudier@@gmail.com}
 setMethod(
-  f='show', 
+  f='show',
   signature='Spectra',
   definition=function(object){
     cat(paste("Object of class ", class(object), "\n", sep = ""))
@@ -135,12 +135,12 @@ setMethod(
     if (nrow(object@id) > 0){
       cat("Wavelength range: ", min(object@wl, na.rm=TRUE),"-",max(object@wl, na.rm=TRUE)," ", object@units, "\n", sep="")
       SpectralResolution <- resolution(object)
-      if (length(SpectralResolution) > 1) 
+      if (length(SpectralResolution) > 1)
         cat("Spectral resolution: irregular wavelength spacing\n")
       else {
         if (length(SpectralResolution) == 0)
           cat("Spectral resolution: NA\n")
-        else 
+        else
           cat("Spectral resolution: ", SpectralResolution , " ", object@units, "\n", sep="")
       }
     }
@@ -153,7 +153,7 @@ setMethod(
 
 ## coercition methods
 
-#' @param x an object inheriting from \code{Spectra} 
+#' @param x an object inheriting from \code{Spectra}
 #' @param ... Ignored
 #' @return a \code{data.frame} object
 #' @author Pierre Roudier \url{pierre.roudier@@gmail.com}
@@ -175,12 +175,12 @@ if (!isGeneric("spectra"))
 
 #' Returns the matrix of the spectra in the collection
 #'
-#' @param object an object inheriting from \code{Spectra} 
+#' @param object an object inheriting from \code{Spectra}
 #' @return a \code{matrix} object
 #'
 #' @export
 #' @author Pierre Roudier \url{pierre.roudier@@gmail.com}
-setMethod("spectra", "Spectra", 
+setMethod("spectra", "Spectra",
   function(object)
     object@nir
 )
@@ -192,12 +192,12 @@ if (!isGeneric("wl"))
 
 #' Returns the wavelengths at which the spectra have been recorded
 #'
-#' @param object an object inheriting from \code{Spectra} 
+#' @param object an object inheriting from \code{Spectra}
 #' @return a \code{numeric} object
 #'
 #' @export
 #' @author Pierre Roudier \url{pierre.roudier@@gmail.com}
-setMethod("wl", "Spectra", 
+setMethod("wl", "Spectra",
   function(object)
     object@wl
 )
@@ -209,12 +209,12 @@ if (!isGeneric("id"))
 
 #' Returns the ids of each spectra in the collection
 #'
-#' @param object an object inheriting from \code{Spectra} 
+#' @param object an object inheriting from \code{Spectra}
 #' @return a \code{character} object
 #'
 #' @export
 #' @author Pierre Roudier \url{pierre.roudier@@gmail.com}
-setMethod("id", "Spectra", 
+setMethod("id", "Spectra",
   function(object)
     object@id
 )
@@ -226,18 +226,18 @@ if (!isGeneric("units"))
 
 #' Returns the unit in which the wavelengths values are expressed
 #'
-#' @param object an object inheriting from \code{Spectra} 
-#' @return a \code{character} 
+#' @param object an object inheriting from \code{Spectra}
+#' @return a \code{character}
 #'
-#' @export 
+#' @export
 #' @author Pierre Roudier \url{pierre.roudier@@gmail.com}
-setMethod("units", signature = "Spectra", 
+setMethod("units", signature = "Spectra",
   function(object)
     object@units
 )
 
 if (!isGeneric('units<-'))
-  setGeneric('units<-', function(object, value) 
+  setGeneric('units<-', function(object, value)
     standardGeneric('units<-'))
 
 setReplaceMethod("units", "Spectra",
@@ -248,13 +248,13 @@ setReplaceMethod("units", "Spectra",
     object
   }
 )
-    
+
 #' Returns the number of wavelengths in the object
 #'
-#' @param object an object inheriting from \code{Spectra} 
+#' @param object an object inheriting from \code{Spectra}
 #' @return a vector
 #'
-#' @export 
+#' @export
 #' @author Pierre Roudier \url{pierre.roudier@@gmail.com}
 setMethod(f='length', signature='Spectra',
   definition=function(x)
@@ -263,10 +263,10 @@ setMethod(f='length', signature='Spectra',
 
 #' Returns the number of samples in the object
 #'
-#' @param object an object inheriting from \code{Spectra} 
+#' @param object an object inheriting from \code{Spectra}
 #' @return a vector
 #'
-#' @export 
+#' @export
 #' @author Pierre Roudier \url{pierre.roudier@@gmail.com}
 setMethod(f='nrow', signature='Spectra',
 definition=function(x)
@@ -282,10 +282,10 @@ if (!isGeneric("resolution"))
 #' Returns the spectral resolution of an object
 #'
 #' @param object a vector
-#' @param digits the number of significant digits 
+#' @param digits the number of significant digits
 #' @return a vector
 #'
-#' @method resolution numeric 
+#' @method resolution numeric
 #' @author Pierre Roudier \url{pierre.roudier@@gmail.com}
 resolution.numeric <- function(object, digits = 10, ...){
   unique(round(diff(object), digits = digits)) # round - otherwise diff() picks some unsignificant values
@@ -293,8 +293,8 @@ resolution.numeric <- function(object, digits = 10, ...){
 
 #' Returns the spectral resolution of an object
 #'
-#' @param object an object inheriting from \code{Spectra} 
-#' @param digits the number of significant digits 
+#' @param object an object inheriting from \code{Spectra}
+#' @param digits the number of significant digits
 #' @return a vector
 #'
 #' @method resolution Spectra
@@ -318,7 +318,7 @@ setMethod("resolution", "Spectra", resolution.Spectra)
 #' @rdname extract-methods
 #'
 #' @author Pierre Roudier \url{pierre.roudier@@gmail.com}
-setMethod("[", c("Spectra", "ANY", "ANY", "missing"), 
+setMethod("[", c("Spectra", "ANY", "ANY", "missing"),
   function(x, i, j, ...) {
 
     missing.i <- missing(i)
@@ -329,7 +329,7 @@ setMethod("[", c("Spectra", "ANY", "ANY", "missing"),
       i <- TRUE
     else {
       # throws an error if trying to index rows using NAs
-      if (any(is.na(i))) 
+      if (any(is.na(i)))
 	stop("NAs not permitted in row index")
       # in the case indexing rows by ids
       if (is.character(i))
@@ -347,23 +347,23 @@ setMethod("[", c("Spectra", "ANY", "ANY", "missing"),
       res <- SpectraDataFrame(wl=x@wl[j], nir=x@nir[i, j, drop = FALSE], id=x@id[i, , drop = FALSE], data=df)
     }
     # if this is a Spectra obecjt
-    else 
+    else
       res <- Spectra(wl=x@wl[j], nir=x@nir[i, j, drop = FALSE], id=x@id[i, , drop = FALSE])
 
-    res  
+    res
   }
 )
 
 ## Upgrade a Spectra object to a SpectraDataFrame
 
 if (!isGeneric('data<-'))
-  setGeneric('data<-', function(object, value) 
+  setGeneric('data<-', function(object, value)
     standardGeneric('data<-'))
 
-#' 
+#'
 setReplaceMethod("data", "Spectra",
   function(object, value) {
-    if (!inherits(value, "data.frame")) 
+    if (!inherits(value, "data.frame"))
       stop('invalid initialization for SpectraDataFrame object')
     SpectraDataFrame(object, data=value)
   }
@@ -382,31 +382,31 @@ if (!isGeneric("add"))
 .add.Spectra <- function(x, y){
   tmp <- list()
 
-  if (identical(x@wl, y@wl)) 
+  if (identical(x@wl, y@wl))
     tmp$wl <- x@wl
-  else 
+  else
     stop('You can not add objects with different wavelength ranges')
 
   if (identical(ncol(x@wl), ncol(y@wl)))
     tmp$nir <- rbind(x@nir, y@nir)
-  else 
+  else
     stop('You can not add objects with different wavelength ranges')
 
-  if (!any(x@id %in% y@id)) 
+  if (!any(x@id %in% y@id))
     tmp$id <- rbind(x@id, y@id)
-  else 
+  else
     stop('You can not add objects with overlapping IDs')
 
-  if (x@units %in% y@units) 
+  if (x@units %in% y@units)
     tmp$units <- x@units
-  else 
+  else
     stop('You can not add objects with different wavelength units')
 
   if (("data" %in% slotNames(x)) & ("data" %in% slotNames(y))) {
     tmp$data <- join(x@data, y@data, type="full")
     res <- SpectraDataFrame(wl=tmp$wl, nir=tmp$nir, id=tmp$id, units=tmp$units, data=tmp$data)
   }
-  else 
+  else
     res <- Spectra(wl=tmp$wl, nir=tmp$nir, id=tmp$id, units=tmp$units)
 
   res
@@ -425,10 +425,10 @@ add.Spectra <- function(...){
   res
 }
 
-setMethod("add", signature=c("Spectra", "Spectra"), 
+setMethod("add", signature=c("Spectra", "Spectra"),
   function(x,y,...) add.Spectra(x, y, ...))
 
-setMethod("add", signature=c("SpectraDataFrame", "SpectraDataFrame"), 
+setMethod("add", signature=c("SpectraDataFrame", "SpectraDataFrame"),
   function(x,y,...) add.Spectra(x, y, ...))
 
 ## Split
@@ -513,11 +513,11 @@ melt_spectra <- function(obj, ...){
   else {
     if ((inherits(obj, 'data.frame')) | (inherits(obj, 'matrix'))){
       x <- obj
-    } 
-    else 
+    }
+    else
       stop('The object you try to melt either be a matrix or data.frame, or a Spectra* object')
   }
   res <- reshape2:::melt.array(x, varnames=c('id', 'wl'), value.name="nir")
   names(res)[3] <- "nir" # tmp fix - waiting for fix upstream in reshape2
-  res    
+  res
 }
