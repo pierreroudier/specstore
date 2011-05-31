@@ -5,6 +5,13 @@
 - Put some sample data (and document it)
 - Push the SpatialSpectraDataFrame class
 - Find a quick way to use the baseline package (wrapper)
+- Finish the integration of the smooth method (esp. implement the kernel smoother)
+- The latter is a way to subsample the spectral resolution maybe?
+- Implement a sample.Spectra() method
+- Document how to centre the spectra
+- Same for variance scaling
+- Implement wavelet-based wl selection
+- Implement the parameter orthogonalisation algorithm (Roger et al., 2003)
 
 ------------- Longer term --------------------
 
