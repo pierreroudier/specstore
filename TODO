@@ -9,12 +9,12 @@
 - The latter is a way to subsample the spectral resolution maybe?
 - Implement a sample.Spectra() method
 - Document how to centre the spectra
-- Same for variance scaling
+- Same for variance scaling (maybe that would justify coding up a spectra_apply() kind of function?)
 - Implement wavelet-based wl selection
 - Implement the parameter orthogonalisation algorithm (Roger et al., 2003)
 
 ------------- Longer term --------------------
 
 - File-based storage of big collections
-- Integration of a viewer, possibly using playwith, to 
+- Integration of a viewer, possibly using playwith, to
 manipulate (eg crop) the spectra in a collection.

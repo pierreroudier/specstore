@@ -1,3 +1,6 @@
+-------------------------- specstore 0.1-5 (2011-06-01) --------------------------
+* bug fix when initializing a Spectra object without any id field.
+
 -------------------------- specstore 0.1-4 (2011-05-31) --------------------------
 * `[i, j, ..` method now accepts j values to subset the wavelengths
 
