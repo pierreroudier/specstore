@@ -1,9 +1,9 @@
 #' Tries to guess the wavelengths from a stringr
-#' 
+#'
 #' This simple wrapper around str_extract simply tries to pull out
 #' digits contained in a chain of characters.
 #' @param x a character or a vector of characters
-#' @return ta character or a vector of characters containing he digits 
+#' @return ta character or a vector of characters containing he digits
 #' that have been extracted from x.
 #' @author Pierre Roudier \email{pierre.roudier@@gmail.com}
 #' @import plyr stringr
@@ -14,20 +14,20 @@
 
 #' Tries to find the columns of the spectra from the spectral range
 #'
-#' This function tries to guess the location of the columns corresponding 
+#' This function tries to guess the location of the columns corresponding
 #' to each wavelength given by a numeric vector, based on the column
 #' names. This is mainly a workaround the fact that R is usually putting
 #' a "X" in front of column names that are numbers.
 #'
 #' @param data a \code{data.frame} object
-#' @param wl a numeric or character vector containing the values of the 
+#' @param wl a numeric or character vector containing the values of the
 #' wavelengths to look for.
 #' @return the index in data of the column corrresponding to the wavelengths
 #' given in wl.
 #' @author Pierre Roudier \email{pierre.roudier@@gmail.com}
 #' @import plyr stringr
 .findSpectraCols <- function(data, wl, ...){
-  
+
   # for each colname, we check if a part of it is in the spectral range
   # first implementation - simple test
   ind_col_spectra <- which(names(data) %in% as.character(wl))
@@ -48,7 +48,7 @@
 ## setters for Spectra objects
 
 if (!isGeneric('wl<-'))
-  setGeneric('wl<-', function(object, value) 
+  setGeneric('wl<-', function(object, value)
     standardGeneric('wl<-'))
 
 setReplaceMethod("wl", "data.frame",
@@ -59,9 +59,9 @@ setReplaceMethod("wl", "data.frame",
       # finding which cols contrain the spectra
       ind_nir <- .findSpectraCols(data=object, wl=value, .progress='text')
       nir <- object[, ind_nir, drop=FALSE]
-      
+
       res <- Spectra(wl=as.numeric(value), nir=as.matrix(nir))
-      
+
       # If there are some columns left, we use them to initiate a SpectraDataFrame object
       if (ncol(nir) < ncol(object)) {
 	data <- object[, -ind_nir, drop=FALSE]
@@ -88,19 +88,19 @@ setReplaceMethod("wl", "Spectra",
 	res <- object
 	res@wl <- value
       }
-      
+
       # if the number of wl provided is smaller than the number of wavelengths
       # in the @wl slot, it is interpreted as a reduction of the object to a certain
       # set of wavelengths
       else if (length(value) < length(object)) {
-	ind.wl <- which(wl(d) %in% value) 
+	ind.wl <- which(wl(d) %in% value)
 	nir <- spectra(object)[, ind.wl, drop=FALSE]
 	res <- Spectra(id = id(object), wl = value, nir = nir, units = units(object))
 	if ("data" %in% slotNames(object))
 	  res <- SpectraDataFrame(res, data = data(object))
       }
-      
-      else 
+
+      else
 	stop('More wavelengths that the object originally has.')
     }
     else
@@ -115,7 +115,7 @@ setReplaceMethod("wl", "Spectra",
 #'
 #' spectra(df) <- id ~ attr1 + attr2 ~ ...
 #' spectra(df) <- id ~ ... ~ 350:2500
-#' spectra(df) <- id ~ ... 
+#' spectra(df) <- id ~ ...
 #' spectra(df) <- ~ ...
 #'
 #' Inspired from Hadley Wickham's parse_formula
@@ -123,7 +123,7 @@ setReplaceMethod("wl", "Spectra",
 #'
 #' @param formula a formula fot the spectra()<- setter
 #' @param object a data.frame
-#' @return returns a list of column names for the id slot, 
+#' @return returns a list of column names for the id slot,
 #' the data slot and the nir slot of teh Spectra* object
 #' @author Pierre Roudier \url{pierre.roudier@@gmail.com}
 #' @import stringr plyr
@@ -136,27 +136,27 @@ setReplaceMethod("wl", "Spectra",
 
   formula <- lapply(str_split(elements, "[+*]"), str_trim)
   n_elements <- length(formula)
-  
+
   # PLACEHOLDERS
   #
   # ... : all the columns that havent been used in the formula
   # : : sequence of integers, like 350:2500
   # :n: : sequence of numbers, emulates seq(x,y, by=n), like 350:n:2500
-  
+
   # if used the ":"  placeholder
   if (str_detect(formula[[length(formula)]], ":")) { # allowed only on the right hand element of the formula
     nir_seq <- aaply(unlist(str_split(formula[[length(formula)]], "[:]")), 1, as.numeric)
-    
+
     # if this is a sequence of wl with by=1
     if (length(nir_seq) == 2)
       nir_wl <- seq(nir_seq[1], nir_seq[2], by=1)
     # if this is a sequence of wl with by!=1
-    else if (length(nir_seq) == 3) 
+    else if (length(nir_seq) == 3)
       nir_wl <- seq(nir_seq[1], nir_seq[3], by=nir_seq[2])
     # if there's more than two ":" placeholders
-    else 
-      stop("Bad formula.")   
-    
+    else
+      stop("Bad formula.")
+
     # finding the corresponding col names
     cols_nir  <- names(object)[.findSpectraCols(data=object, wl=nir_wl)]
     # replacing the placeholder by the actual col names
@@ -168,21 +168,21 @@ setReplaceMethod("wl", "Spectra",
   # if used the "..." placeholder
   if (any(all_vars == "...")) {
     remainder <- setdiff(names(object), c(all_vars, 'id')) # setting id as a reserved name for id columns
-    
+
     replace.remainder <- function(x) {
-      if (any(x == "...")) 
-	c(x[x != "..."], remainder) 
+      if (any(x == "..."))
+	c(x[x != "..."], remainder)
       else x
     }
     formula <- lapply(formula, replace.remainder)
-  }  
+  }
 
   if (n_elements == 1) { # case spectra(df) <- ~ ...
     cols_id <- NULL
     cols_data <- NULL
     cols_nir <- formula[[1]]
   }
-  else if (n_elements == 2) {# case spectra(df) <- id ~ .      
+  else if (n_elements == 2) {# case spectra(df) <- id ~ .
     cols_id <- formula[[1]]
     cols_data <- NULL
     cols_nir <- formula[[2]]
@@ -203,38 +203,38 @@ setReplaceMethod("wl", "Spectra",
 ## - if applied to a data.frame --> we create a Spectra* object
 ## - if applied to a Spectra* --> we change its @nir slot
 if (!isGeneric('spectra<-'))
-  setGeneric('spectra<-', function(object, value) 
+  setGeneric('spectra<-', function(object, value)
     standardGeneric('spectra<-'))
 
 ## for a data.frame
 setReplaceMethod("spectra", "data.frame",
   function(object, value) {
-  
+
     # if given a formula
     if (is(value, 'formula')) {
       # parsing the formula to retrieve the different slots (id, data, nir)
       ind.vars <- lapply(.parse_formula(value, object), function(x) which(names(object) %in% x))
-      
-      if (length(ind.vars$nir) == 0) 
-	ind.vars$nir <- .findSpectraCols(object, .parse_formula(value, object)$nir)
-      
+
+      if (length(ind.vars$nir) == 0)
+        ind.vars$nir <- .findSpectraCols(object, .parse_formula(value, object)$nir)
+
       nir <- object[, ind.vars$nir, drop = FALSE]
       if (length(ind.vars$id) == 0)
-	ids <- as.character(NA)
+        ids <- as.character(NA)
       else
-	ids <- object[, ind.vars$id, drop = FALSE]
-      
+        ids <- object[, ind.vars$id, drop = FALSE]
+
       wl <- .guessWl(names(nir))
       res <- Spectra(id=ids, wl=wl, nir=nir)
-      
+
       cat("Wavelength range: ")
       cat(min(wl(res), na.rm=TRUE), " to ", max(wl(res), na.rm = TRUE)," ", units(res), "\n", sep="")
       cat("Spectral resolution: ", resolution(wl(res)) , " ",  units(res), "\n", sep="")
-      
+
       if (length(ind.vars$data != 0))
-	res <- SpectraDataFrame(res, data=object[, ind.vars$data, drop = FALSE])
+        res <- SpectraDataFrame(res, data=object[, ind.vars$data, drop = FALSE])
     }
-    
+
     # if given a numeric vector (interpreted as the index of the cols)
     # eg spectra(df) <- 11:2161
     else if (is(value, 'numeric')) {
@@ -244,8 +244,8 @@ setReplaceMethod("spectra", "data.frame",
 
       # if there's some cols left, we create a SpectraDataFrame
       if (length(value) < ncol(object)) {
-	data <- object[, setdiff(1:ncol(object), value), drop = FALSE]
-	res <- SpectraDataFrame(res, data=data)
+        data <- object[, setdiff(1:ncol(object), value), drop = FALSE]
+        res <- SpectraDataFrame(res, data=data)
       }
     }
 
@@ -254,14 +254,14 @@ setReplaceMethod("spectra", "data.frame",
     else if (is(value, 'character')) {
       ind.nir <- which(names(object) %in% value)
       nir <- object[, ind.nir, drop = FALSE]
-      
+
       wl <- .guessWl(names(nir))
       res <- Spectra(wl=wl, nir=nir)
 
       # if there's some cols left, we create a SpectraDataFrame
       if (length(value) < ncol(object)) {
-	data <- object[, setdiff(1:ncol(object), ind.nir), drop = FALSE]
-	res <- SpectraDataFrame(res, data=data)
+        data <- object[, setdiff(1:ncol(object), ind.nir), drop = FALSE]
+        res <- SpectraDataFrame(res, data=data)
       }
     }
 
@@ -276,7 +276,7 @@ setReplaceMethod("spectra", "data.frame",
 setReplaceMethod("spectra", "Spectra",
   function(object, value) {
     if (is(value, 'matrix')) {
-      
+
       # this method should not allow to change the number of samples in the colection
       if (nrow(value) != nrow(spectra(object)))
 	stop("Dimensions of the matrix do not match the number of spectra in the Spectra object.")
@@ -300,7 +300,7 @@ setReplaceMethod("spectra", "Spectra",
 ## id
 
 if (!isGeneric('id<-'))
-  setGeneric('id<-', function(object, value) 
+  setGeneric('id<-', function(object, value)
     standardGeneric('id<-'))
 
 setReplaceMethod("id", "Spectra",
