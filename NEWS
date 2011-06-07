@@ -1,3 +1,6 @@
+-------------------------- specstore 0.1-6 (2011-06-07) --------------------------
+* bug fix of aggregate_spectra (bug #1, "evaluation nested too deeply" error)
+
 -------------------------- specstore 0.1-5 (2011-06-01) --------------------------
 * bug fix when initializing a Spectra object without any id field.
 
